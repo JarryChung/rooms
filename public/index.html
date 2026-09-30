@@ -1519,6 +1519,15 @@
     // 教学示例限制最大文件 20 MB
     const MAX_FILE_SIZE = 20 * 1024 * 1024;
 
+    const DEFAULT_ICE_SERVERS = [
+      {
+        urls: [
+          "stun:stun.l.google.com:19302",
+          "stun:stun1.l.google.com:19302",
+        ],
+      },
+    ];
+
     const ROOM_QUERY_KEY = "r";
     const DEFAULT_THEME = "terminal-blue";
     const THEME_STORAGE_KEY = "private-channel-theme";
@@ -1590,6 +1599,10 @@
     const peers = new Map();
     const peerProfiles = new Map();
     const objectUrls = new Set();
+    let rtcConfiguration = {
+      iceServers: DEFAULT_ICE_SERVERS,
+    };
+    let iceConfigPromise = null;
 
     // =========================
     // 工具函数
@@ -1613,6 +1626,91 @@
     function clearUnreadMessages() {
       unreadMessageCount = 0;
       updateDocumentTitle();
+    }
+
+    function normalizeIceServers(value) {
+      if (!Array.isArray(value)) {
+        return [];
+      }
+
+      return value
+        .map((server) => {
+          if (!server || typeof server !== "object") {
+            return null;
+          }
+
+          const urls = Array.isArray(server.urls)
+            ? server.urls.filter((url) => typeof url === "string" && url.trim())
+            : typeof server.urls === "string" && server.urls.trim()
+              ? server.urls.trim()
+              : null;
+
+          if (!urls || (Array.isArray(urls) && urls.length === 0)) {
+            return null;
+          }
+
+          const nextServer = {
+            urls,
+          };
+
+          if (typeof server.username === "string") {
+            nextServer.username = server.username;
+          }
+
+          if (typeof server.credential === "string") {
+            nextServer.credential = server.credential;
+          }
+
+          if (typeof server.credentialType === "string") {
+            nextServer.credentialType = server.credentialType;
+          }
+
+          return nextServer;
+        })
+        .filter(Boolean);
+    }
+
+    function formatIceServerUrls(iceServers) {
+      return iceServers
+        .flatMap((server) =>
+          Array.isArray(server.urls) ? server.urls : [server.urls]
+        )
+        .join(", ");
+    }
+
+    async function loadRtcConfiguration() {
+      if (iceConfigPromise) {
+        return iceConfigPromise;
+      }
+
+      iceConfigPromise = fetch("/ice-servers", {
+        cache: "no-store",
+      })
+        .then(async (response) => {
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+
+          const data = await response.json();
+          const iceServers = normalizeIceServers(data.iceServers);
+
+          rtcConfiguration = {
+            iceServers:
+              iceServers.length > 0 ? iceServers : DEFAULT_ICE_SERVERS,
+            iceCandidatePoolSize: 4,
+          };
+
+          log(`ICE 配置已加载：${formatIceServerUrls(rtcConfiguration.iceServers)}`);
+        })
+        .catch((error) => {
+          rtcConfiguration = {
+            iceServers: DEFAULT_ICE_SERVERS,
+            iceCandidatePoolSize: 4,
+          };
+          log(`ICE 配置加载失败，使用默认 STUN：${error.message}`);
+        });
+
+      return iceConfigPromise;
     }
 
     function shouldNotifyIncomingMessage() {
@@ -2317,13 +2415,7 @@
         return existingPeer;
       }
 
-      const pc = new RTCPeerConnection({
-        iceServers: [
-          {
-            urls: "stun:stun.l.google.com:19302",
-          },
-        ],
-      });
+      const pc = new RTCPeerConnection(rtcConfiguration);
 
       const peer = {
         pc,
@@ -2349,6 +2441,26 @@
           to: peerId,
           candidate: event.candidate.toJSON(),
         });
+      };
+
+      pc.onicecandidateerror = (event) => {
+        const message = event.errorText
+          ? `${event.errorCode} ${event.errorText}`
+          : event.errorCode;
+
+        log(`与 ${getPeerLabel(peerId)} 的 ICE 候选收集失败：${message}`);
+      };
+
+      pc.onicegatheringstatechange = () => {
+        log(
+          `与 ${getPeerLabel(peerId)} 的 ICE 收集状态：${pc.iceGatheringState}`
+        );
+      };
+
+      pc.oniceconnectionstatechange = () => {
+        log(
+          `与 ${getPeerLabel(peerId)} 的 ICE 连接状态：${pc.iceConnectionState}`
+        );
       };
 
       pc.onconnectionstatechange = () => {
@@ -2776,7 +2888,7 @@
     // =========================
     // 连接信令服务器并加入房间
     // =========================
-    function connectAndJoin(roomId) {
+    async function connectAndJoin(roomId) {
       const protocol = location.protocol === "https:" ? "wss" : "ws";
       const wsUrl =
         `${protocol}://${location.host}/ws?r=${encodeURIComponent(roomId)}`;
@@ -2790,6 +2902,8 @@
       signalingDetached = false;
 
       updateChatControls();
+
+      await loadRtcConfiguration();
 
       socket = new WebSocket(wsUrl);
 
@@ -3185,7 +3299,7 @@
     // =========================
     // 事件绑定
     // =========================
-    joinButton.addEventListener("click", () => {
+    joinButton.addEventListener("click", async () => {
       const roomId = normalizeRoomId(roomInput.value);
 
       if (!isValidRoomId(roomId)) {
@@ -3195,7 +3309,7 @@
 
       requestNotificationPermission();
       roomInput.value = roomId;
-      connectAndJoin(roomId);
+      await connectAndJoin(roomId);
     });
 
     roomInput.addEventListener("input", () => {

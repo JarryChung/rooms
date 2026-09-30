@@ -58,6 +58,26 @@ pnpm deploy:worker
 
 Workers 版本按房间号路由到 `Room` Durable Object，并在对象进程内用 `Map` 保存 WebSocket 连接；代码没有把房间数据写入持久化存储。这样同一房间的用户会稳定进入同一个信令进程，避免普通 Worker 全局 `Map` 在不同 isolate 之间不共享导致双方一直看不到彼此。
 
+跨网络连接如果出现 `connecting` 后变成 `failed`，通常是 ICE 打洞失败。可以在 Cloudflare Workers 环境变量中配置 `ICE_SERVERS_JSON`，让前端使用自己的 STUN/TURN：
+
+```json
+[
+  {
+    "urls": [
+      "stun:stun.l.google.com:19302"
+    ]
+  },
+  {
+    "urls": [
+      "turn:turn.example.com:3478?transport=udp",
+      "turns:turn.example.com:5349?transport=tcp"
+    ],
+    "username": "user",
+    "credential": "pass"
+  }
+]
+```
+
 ## 使用方式
 
 1. 打开页面后输入或使用自动生成的 4 位房间号。

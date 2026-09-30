@@ -2,6 +2,14 @@ const MAX_ROOM_PEERS = 8;
 const MAX_SIGNAL_CHARS = 256 * 1024;
 const WS_OPEN = 1;
 const ALLOWED_SIGNAL_TYPES = new Set(["offer", "answer", "candidate"]);
+const DEFAULT_ICE_SERVERS = [
+  {
+    urls: [
+      "stun:stun.l.google.com:19302",
+      "stun:stun1.l.google.com:19302",
+    ],
+  },
+];
 
 const localContext = {
   rooms: new Map(),
@@ -48,6 +56,79 @@ function normalizeRoomId(value) {
 
 function isValidRoomId(roomId) {
   return /^[0-9A-Z]{4}$/.test(roomId);
+}
+
+function normalizeIceServers(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .map((server) => {
+      if (!server || typeof server !== "object") {
+        return null;
+      }
+
+      const urls = Array.isArray(server.urls)
+        ? server.urls.filter((url) => typeof url === "string" && url.trim())
+        : typeof server.urls === "string" && server.urls.trim()
+          ? server.urls.trim()
+          : null;
+
+      if (!urls || (Array.isArray(urls) && urls.length === 0)) {
+        return null;
+      }
+
+      const nextServer = {
+        urls,
+      };
+
+      if (typeof server.username === "string") {
+        nextServer.username = server.username;
+      }
+
+      if (typeof server.credential === "string") {
+        nextServer.credential = server.credential;
+      }
+
+      if (typeof server.credentialType === "string") {
+        nextServer.credentialType = server.credentialType;
+      }
+
+      return nextServer;
+    })
+    .filter(Boolean);
+}
+
+function getIceServers(env) {
+  if (!env.ICE_SERVERS_JSON) {
+    return DEFAULT_ICE_SERVERS;
+  }
+
+  try {
+    const configuredServers = normalizeIceServers(
+      JSON.parse(env.ICE_SERVERS_JSON)
+    );
+
+    return configuredServers.length > 0
+      ? configuredServers
+      : DEFAULT_ICE_SERVERS;
+  } catch {
+    return DEFAULT_ICE_SERVERS;
+  }
+}
+
+function handleIceServers(env) {
+  return Response.json(
+    {
+      iceServers: getIceServers(env),
+    },
+    {
+      headers: {
+        "Cache-Control": "no-store",
+      },
+    }
+  );
 }
 
 function getState(context, ws) {
@@ -323,6 +404,10 @@ export default {
       }
 
       return handleWebSocket(request, localContext);
+    }
+
+    if (url.pathname === "/ice-servers") {
+      return handleIceServers(env);
     }
 
     return env.ASSETS.fetch(request);
