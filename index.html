@@ -1,0 +1,3301 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="terminal-blue">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Private Channel</title>
+
+  <style>
+    :root {
+      --bg: #030a12;
+      --panel: #061624;
+      --panel-2: #092235;
+      --panel-3: #0b2b44;
+      --ink: #d9f3ff;
+      --muted: #6f98ad;
+      --line: #164b6a;
+      --line-strong: #38b6ff;
+      --field: #020811;
+      --focus: #98ddff;
+      --ok: #66d7ff;
+      --warn: #ffd166;
+      --grid-major: rgba(56, 182, 255, 0.08);
+      --grid-minor: rgba(56, 182, 255, 0.055);
+      --scanline: rgba(100, 210, 255, 0.05);
+      --scanline-opacity: 0.35;
+      --noise-dot: rgba(152, 221, 255, 0.18);
+      --noise-opacity: 0.07;
+      --shell-beam: rgba(56, 182, 255, 0.09);
+      --shell-bg: rgba(2, 8, 17, 0.82);
+      --shell-shadow: rgba(0, 30, 60, 0.42);
+      --control-surface: rgba(6, 22, 36, 0.95);
+      --sidebar-surface: rgba(3, 10, 18, 0.9);
+      --chat-surface: rgba(2, 8, 17, 0.72);
+      --messages-bg: rgba(2, 8, 17, 0.7);
+      --messages-glow: rgba(56, 182, 255, 0.08);
+      --message-bg: rgba(6, 22, 36, 0.9);
+      --message-own-bg: rgba(10, 43, 68, 0.92);
+      --button-bg: rgba(56, 182, 255, 0.12);
+      --button-secondary-bg: transparent;
+      --button-hover-bg: var(--line-strong);
+      --button-hover-ink: var(--field);
+      --dialog-backdrop: rgba(2, 8, 17, 0.86);
+      --debug-shadow: rgba(56, 182, 255, 0.32);
+      --body-font: "SFMono-Regular", Consolas, "Liberation Mono",
+        "Microsoft YaHei", monospace;
+      --title-font: var(--body-font);
+      --radius: 0;
+      --radius-sm: 0;
+      --radius-panel: 0;
+      --control-case: uppercase;
+      --button-prefix: "[ ";
+      --button-suffix: " ]";
+      --section-marker: "//";
+      --message-marker: "> ";
+      --file-marker: ":: ";
+      --sidebar-width: 260px;
+    }
+
+    html[data-theme="terminal-green"] {
+      --bg: #03110a;
+      --panel: #061a10;
+      --panel-2: #0a2a18;
+      --panel-3: #0c3a20;
+      --ink: #d9ffe4;
+      --muted: #75a985;
+      --line: #1b6b3c;
+      --line-strong: #44ff88;
+      --field: #020905;
+      --focus: #b7ffd0;
+      --ok: #44ff88;
+      --warn: #e8ff8d;
+      --grid-major: rgba(68, 255, 136, 0.075);
+      --grid-minor: rgba(68, 255, 136, 0.045);
+      --scanline: rgba(68, 255, 136, 0.055);
+      --noise-dot: rgba(183, 255, 208, 0.18);
+      --shell-beam: rgba(68, 255, 136, 0.08);
+      --shell-bg: rgba(2, 9, 5, 0.84);
+      --shell-shadow: rgba(0, 48, 18, 0.44);
+      --control-surface: rgba(6, 26, 16, 0.95);
+      --sidebar-surface: rgba(3, 17, 10, 0.9);
+      --chat-surface: rgba(2, 9, 5, 0.74);
+      --messages-bg: rgba(2, 9, 5, 0.72);
+      --messages-glow: rgba(68, 255, 136, 0.08);
+      --message-bg: rgba(6, 26, 16, 0.9);
+      --message-own-bg: rgba(12, 58, 32, 0.92);
+      --button-bg: rgba(68, 255, 136, 0.1);
+      --debug-shadow: rgba(68, 255, 136, 0.26);
+    }
+
+    html[data-theme="terminal-amber"] {
+      --bg: #140b02;
+      --panel: #221304;
+      --panel-2: #3a2107;
+      --panel-3: #57320a;
+      --ink: #fff2d6;
+      --muted: #b89461;
+      --line: #74420c;
+      --line-strong: #ffb13b;
+      --field: #0b0501;
+      --focus: #ffd58b;
+      --ok: #ffd166;
+      --warn: #ff7a3d;
+      --grid-major: rgba(255, 177, 59, 0.08);
+      --grid-minor: rgba(255, 177, 59, 0.05);
+      --scanline: rgba(255, 177, 59, 0.055);
+      --noise-dot: rgba(255, 213, 139, 0.18);
+      --shell-beam: rgba(255, 177, 59, 0.09);
+      --shell-bg: rgba(11, 5, 1, 0.84);
+      --shell-shadow: rgba(68, 34, 0, 0.44);
+      --control-surface: rgba(34, 19, 4, 0.95);
+      --sidebar-surface: rgba(20, 11, 2, 0.9);
+      --chat-surface: rgba(11, 5, 1, 0.74);
+      --messages-bg: rgba(11, 5, 1, 0.72);
+      --messages-glow: rgba(255, 177, 59, 0.08);
+      --message-bg: rgba(34, 19, 4, 0.9);
+      --message-own-bg: rgba(87, 50, 10, 0.92);
+      --button-bg: rgba(255, 177, 59, 0.11);
+      --debug-shadow: rgba(255, 177, 59, 0.26);
+    }
+
+    html[data-theme="excel-grid"] {
+      --bg: #f2fbf6;
+      --panel: #ffffff;
+      --panel-2: #e5f3ec;
+      --panel-3: #d0eadc;
+      --ink: #123425;
+      --muted: #557467;
+      --line: #8fc5a7;
+      --line-strong: #217346;
+      --field: #ffffff;
+      --focus: #21a366;
+      --ok: #21a366;
+      --warn: #b46b00;
+      --grid-major: rgba(33, 115, 70, 0.18);
+      --grid-minor: rgba(33, 115, 70, 0.1);
+      --scanline: rgba(255, 255, 255, 0.18);
+      --scanline-opacity: 0.08;
+      --noise-dot: rgba(33, 115, 70, 0.14);
+      --noise-opacity: 0.04;
+      --shell-beam: rgba(33, 115, 70, 0.08);
+      --shell-bg: rgba(248, 255, 251, 0.94);
+      --shell-shadow: rgba(24, 77, 50, 0.18);
+      --control-surface: rgba(236, 247, 241, 0.96);
+      --sidebar-surface: rgba(242, 251, 246, 0.95);
+      --chat-surface: rgba(255, 255, 255, 0.78);
+      --messages-bg: rgba(255, 255, 255, 0.84);
+      --messages-glow: rgba(33, 115, 70, 0.12);
+      --message-bg: rgba(240, 250, 245, 0.96);
+      --message-own-bg: rgba(218, 242, 229, 0.96);
+      --button-bg: rgba(33, 115, 70, 0.1);
+      --button-secondary-bg: rgba(255, 255, 255, 0.55);
+      --button-hover-bg: #217346;
+      --button-hover-ink: #ffffff;
+      --dialog-backdrop: rgba(21, 65, 43, 0.25);
+      --debug-shadow: rgba(33, 115, 70, 0.22);
+      --body-font: "Aptos Mono", Consolas, "Microsoft YaHei", monospace;
+      --title-font: "Aptos Display", "Aptos", "Microsoft YaHei", sans-serif;
+      --radius: 2px;
+      --radius-sm: 2px;
+      --radius-panel: 6px;
+      --control-case: none;
+      --button-prefix: "";
+      --button-suffix: "";
+      --section-marker: "fx";
+      --message-marker: "A1 ";
+      --file-marker: "xls ";
+    }
+
+    html[data-theme="word-draft"] {
+      --bg: #f3f7ff;
+      --panel: #ffffff;
+      --panel-2: #e5efff;
+      --panel-3: #d7e7ff;
+      --ink: #1d2b46;
+      --muted: #60708c;
+      --line: #8aaee0;
+      --line-strong: #2b579a;
+      --field: #ffffff;
+      --focus: #185abd;
+      --ok: #2b579a;
+      --warn: #b26a00;
+      --grid-major: rgba(43, 87, 154, 0.14);
+      --grid-minor: rgba(43, 87, 154, 0.08);
+      --scanline: rgba(255, 255, 255, 0.2);
+      --scanline-opacity: 0.07;
+      --noise-dot: rgba(43, 87, 154, 0.13);
+      --noise-opacity: 0.04;
+      --shell-beam: rgba(43, 87, 154, 0.08);
+      --shell-bg: rgba(249, 251, 255, 0.94);
+      --shell-shadow: rgba(27, 53, 94, 0.18);
+      --control-surface: rgba(234, 241, 255, 0.96);
+      --sidebar-surface: rgba(243, 247, 255, 0.95);
+      --chat-surface: rgba(255, 255, 255, 0.8);
+      --messages-bg: rgba(255, 255, 255, 0.86);
+      --messages-glow: rgba(43, 87, 154, 0.11);
+      --message-bg: rgba(239, 245, 255, 0.96);
+      --message-own-bg: rgba(218, 232, 255, 0.96);
+      --button-bg: rgba(43, 87, 154, 0.1);
+      --button-secondary-bg: rgba(255, 255, 255, 0.55);
+      --button-hover-bg: #2b579a;
+      --button-hover-ink: #ffffff;
+      --dialog-backdrop: rgba(27, 53, 94, 0.25);
+      --debug-shadow: rgba(43, 87, 154, 0.22);
+      --body-font: "Aptos", "Segoe UI", "Microsoft YaHei", sans-serif;
+      --title-font: "Aptos Display", "Segoe UI", "Microsoft YaHei", sans-serif;
+      --radius: 4px;
+      --radius-sm: 3px;
+      --radius-panel: 8px;
+      --control-case: none;
+      --button-prefix: "";
+      --button-suffix: "";
+      --section-marker: "doc";
+      --message-marker: "¶ ";
+      --file-marker: "doc ";
+    }
+
+    html[data-theme="kawaii"] {
+      --bg: #fff2f9;
+      --panel: #ffe3f0;
+      --panel-2: #ffc8e2;
+      --panel-3: #cbefff;
+      --ink: #4c2a43;
+      --muted: #946f86;
+      --line: #f2a4c8;
+      --line-strong: #ff6faa;
+      --field: #fffafd;
+      --focus: #64c8ff;
+      --ok: #53bfe7;
+      --warn: #ffb95e;
+      --grid-major: rgba(255, 111, 170, 0.12);
+      --grid-minor: rgba(100, 200, 255, 0.08);
+      --scanline: rgba(255, 255, 255, 0.26);
+      --scanline-opacity: 0.16;
+      --noise-dot: rgba(255, 111, 170, 0.2);
+      --noise-opacity: 0.08;
+      --shell-beam: rgba(255, 111, 170, 0.24);
+      --shell-bg: rgba(255, 250, 253, 0.86);
+      --shell-shadow: rgba(255, 111, 170, 0.26);
+      --control-surface: rgba(255, 227, 240, 0.95);
+      --sidebar-surface: rgba(255, 242, 249, 0.9);
+      --chat-surface: rgba(255, 250, 253, 0.76);
+      --messages-bg: rgba(255, 250, 253, 0.78);
+      --messages-glow: rgba(255, 111, 170, 0.18);
+      --message-bg: rgba(255, 227, 240, 0.96);
+      --message-own-bg: rgba(203, 239, 255, 0.96);
+      --button-bg: rgba(255, 111, 170, 0.15);
+      --button-secondary-bg: rgba(100, 200, 255, 0.12);
+      --button-hover-bg: #ff6faa;
+      --button-hover-ink: #fffafd;
+      --dialog-backdrop: rgba(76, 42, 67, 0.28);
+      --debug-shadow: rgba(255, 111, 170, 0.28);
+      --body-font: "Trebuchet MS", "Microsoft YaHei", sans-serif;
+      --title-font: "Trebuchet MS", "Microsoft YaHei", sans-serif;
+      --radius: 18px;
+      --radius-sm: 12px;
+      --radius-panel: 24px;
+      --control-case: none;
+      --button-prefix: "♡ ";
+      --button-suffix: " ♡";
+      --section-marker: "♡";
+      --message-marker: "♡ ";
+      --file-marker: "✦ ";
+    }
+
+    html[data-theme="glitch-party"] {
+      --bg: #101000;
+      --panel: #1f1d05;
+      --panel-2: #2a0830;
+      --panel-3: #08302f;
+      --ink: #fff9c4;
+      --muted: #c4bc58;
+      --line: #676600;
+      --line-strong: #f6ff00;
+      --field: #090900;
+      --focus: #ff4df0;
+      --ok: #43ffcb;
+      --warn: #ff4df0;
+      --grid-major: rgba(246, 255, 0, 0.11);
+      --grid-minor: rgba(255, 77, 240, 0.07);
+      --scanline: rgba(246, 255, 0, 0.07);
+      --scanline-opacity: 0.4;
+      --noise-dot: rgba(255, 77, 240, 0.24);
+      --noise-opacity: 0.12;
+      --shell-beam: rgba(255, 77, 240, 0.12);
+      --shell-bg: rgba(9, 9, 0, 0.86);
+      --shell-shadow: rgba(255, 77, 240, 0.2);
+      --control-surface: rgba(31, 29, 5, 0.96);
+      --sidebar-surface: rgba(16, 16, 0, 0.92);
+      --chat-surface: rgba(9, 9, 0, 0.78);
+      --messages-bg: rgba(9, 9, 0, 0.76);
+      --messages-glow: rgba(255, 77, 240, 0.14);
+      --message-bg: rgba(42, 8, 48, 0.9);
+      --message-own-bg: rgba(8, 48, 47, 0.92);
+      --button-bg: rgba(246, 255, 0, 0.12);
+      --button-secondary-bg: rgba(255, 77, 240, 0.12);
+      --button-hover-bg: #ff4df0;
+      --button-hover-ink: #090900;
+      --dialog-backdrop: rgba(16, 16, 0, 0.82);
+      --debug-shadow: rgba(255, 77, 240, 0.34);
+      --body-font: "Comic Sans MS", "Comic Sans", "Microsoft YaHei",
+        cursive;
+      --title-font: "Comic Sans MS", "Comic Sans", "Microsoft YaHei",
+        cursive;
+      --radius: 9px;
+      --radius-sm: 5px;
+      --radius-panel: 2px;
+      --button-prefix: "?! ";
+      --button-suffix: " !?";
+      --section-marker: "?!";
+      --message-marker: ">> ";
+      --file-marker: "!! ";
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      height: 100%;
+      background: var(--bg);
+      color-scheme: dark;
+    }
+
+    html[data-theme="excel-grid"],
+    html[data-theme="word-draft"] {
+      color-scheme: light;
+    }
+
+    body {
+      position: relative;
+      max-width: 1220px;
+      height: 100dvh;
+      margin: 0 auto;
+      padding: 18px 16px 28px;
+      overflow: hidden;
+      background:
+        linear-gradient(90deg, var(--grid-major) 1px, transparent 1px),
+        linear-gradient(0deg, var(--grid-minor) 1px, transparent 1px),
+        var(--bg);
+      background-size: 52px 52px, 52px 52px, auto;
+      color: var(--ink);
+      font-family: var(--body-font);
+      font-size: 14px;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.45;
+    }
+
+    body::before {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      pointer-events: none;
+      content: "";
+      background:
+        repeating-linear-gradient(
+          0deg,
+          var(--scanline),
+          var(--scanline) 1px,
+          transparent 1px,
+          transparent 4px
+        );
+      mix-blend-mode: screen;
+      opacity: var(--scanline-opacity);
+    }
+
+    body::after {
+      position: fixed;
+      inset: 0;
+      z-index: 11;
+      pointer-events: none;
+      content: "";
+      background-image:
+        radial-gradient(var(--noise-dot) 0.5px, transparent 0.5px);
+      background-size: 5px 5px;
+      opacity: var(--noise-opacity);
+    }
+
+    .terminal-shell {
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      height: calc(100dvh - 46px);
+      min-height: 0;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-panel);
+      background:
+        linear-gradient(180deg, var(--shell-beam), transparent 180px),
+        var(--shell-bg);
+      box-shadow:
+        0 0 0 1px var(--grid-major),
+        0 22px 80px var(--shell-shadow);
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+      gap: 1px;
+      border-bottom: 1px solid var(--line);
+      background: var(--line);
+    }
+
+    .identity-strip,
+    .room-controls {
+      background: var(--control-surface);
+    }
+
+    .identity-strip {
+      display: grid;
+      align-content: center;
+      gap: 5px;
+      min-width: 0;
+      padding: 9px 12px;
+    }
+
+    h1 {
+      margin: 0;
+      color: var(--ink);
+      font-family: var(--title-font);
+      font-size: clamp(20px, 2vw, 26px);
+      font-weight: 900;
+      letter-spacing: 0;
+      line-height: 1;
+      text-transform: var(--control-case);
+    }
+
+    .system-subtitle {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0;
+      text-transform: var(--control-case);
+    }
+
+    .room-controls {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 8px;
+      align-items: end;
+      padding: 9px 10px;
+    }
+
+    .room-command,
+    .nickname-field {
+      display: grid;
+      gap: 5px;
+      min-width: 0;
+      align-content: end;
+    }
+
+    .room-command {
+      grid-template-columns:
+        minmax(150px, 0.8fr)
+        minmax(150px, 1fr)
+        auto
+        auto;
+      gap: 8px;
+      align-items: end;
+    }
+
+    .room-action-row {
+      display: grid;
+      grid-template-columns: auto auto 24px;
+      gap: 8px;
+      align-items: end;
+    }
+
+    .share-status {
+      display: inline-grid;
+      width: 24px;
+      min-height: 36px;
+      place-items: center;
+      color: var(--ok);
+      font-size: 16px;
+      font-weight: 900;
+      line-height: 1;
+      opacity: 0;
+      transform: translateY(2px);
+      transition:
+        opacity 160ms ease,
+        transform 160ms ease;
+    }
+
+    .share-status[data-state="success"] {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .share-status[data-state="error"] {
+      color: var(--warn);
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .field-label {
+      display: grid;
+      gap: 4px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: bold;
+      letter-spacing: 0;
+      text-transform: var(--control-case);
+    }
+
+    .field-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .room-field {
+      min-width: 0;
+    }
+
+    .status-tag {
+      display: inline-grid;
+      flex: 0 0 auto;
+      min-height: 18px;
+      place-items: center;
+      padding: 1px 7px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      background: var(--field);
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 800;
+      line-height: 1;
+      text-transform: var(--control-case);
+    }
+
+    .status-tag[data-state="online"] {
+      border-color: var(--ok);
+      color: var(--ok);
+    }
+
+    .status-tag[data-state="linking"] {
+      border-color: var(--warn);
+      color: var(--warn);
+    }
+
+    .settings-button {
+      min-width: 88px;
+      align-self: end;
+    }
+
+    .field-label:focus-within {
+      border-color: var(--focus);
+      color: var(--ink);
+    }
+
+    input,
+    select,
+    button {
+      font: inherit;
+      border-radius: var(--radius-sm);
+    }
+
+    input,
+    select {
+      width: 100%;
+      margin-top: 0;
+      min-height: 36px;
+      padding: 7px 10px;
+      border: 1px solid var(--line);
+      background: var(--field);
+      color: var(--ink);
+      line-height: 1.2;
+      outline: 0;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--focus);
+      box-shadow: inset 0 0 0 1px var(--focus);
+    }
+
+    input[type="file"] {
+      padding: 8px;
+      color: var(--muted);
+    }
+
+    button {
+      margin-top: 0;
+      min-height: 36px;
+      padding: 7px 12px;
+      cursor: pointer;
+      border: 1px solid var(--line-strong);
+      background: var(--button-bg);
+      color: var(--ink);
+      font-weight: 700;
+      letter-spacing: 0;
+      line-height: 1.2;
+      text-transform: var(--control-case);
+      transition:
+        background 160ms ease,
+        color 160ms ease,
+        transform 160ms ease;
+    }
+
+    button:hover:not(:disabled) {
+      background: var(--button-hover-bg);
+      color: var(--button-hover-ink);
+    }
+
+    .secondary-button {
+      background: var(--button-secondary-bg);
+      border-color: var(--line);
+      color: var(--muted);
+    }
+
+    .secondary-button:hover:not(:disabled) {
+      border-color: var(--line-strong);
+      color: var(--button-hover-ink);
+    }
+
+    button:active:not(:disabled) {
+      transform: translateY(1px);
+    }
+
+    button:focus-visible,
+    a:focus-visible,
+    input:focus-visible,
+    select:focus-visible {
+      outline: 2px solid var(--focus);
+      outline-offset: 2px;
+    }
+
+    button:not(.preview-trigger):not(.icon-button):not(.settings-backdrop)::before {
+      content: var(--button-prefix);
+    }
+
+    button:not(.preview-trigger):not(.icon-button):not(.settings-backdrop)::after {
+      content: var(--button-suffix);
+    }
+
+    button:disabled,
+    input:disabled {
+      cursor: not-allowed;
+      opacity: 0.42;
+    }
+
+    hr {
+      display: none;
+    }
+
+    .chat-layout {
+      display: grid;
+      grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .user-panel {
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      min-height: 0;
+      overflow: hidden;
+      border-right: 1px solid var(--line);
+      background: var(--sidebar-surface);
+    }
+
+    .panel-title,
+    .settings-header,
+    .settings-section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px;
+      border-bottom: 1px solid var(--line);
+      background: var(--panel-2);
+      color: var(--line-strong);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: var(--control-case);
+    }
+
+    .panel-title::before,
+    .settings-header::before,
+    .settings-section-title::before {
+      color: var(--muted);
+      content: var(--section-marker);
+    }
+
+    .user-count {
+      color: var(--ink);
+    }
+
+    .user-list {
+      display: grid;
+      align-content: start;
+      gap: 1px;
+      min-height: 0;
+      overflow-y: auto;
+      background: var(--line);
+    }
+
+    .user-item {
+      display: grid;
+      grid-template-columns: 32px minmax(0, 1fr);
+      gap: 10px;
+      align-items: center;
+      min-height: 58px;
+      padding: 10px;
+      background: var(--panel);
+    }
+
+    .user-index {
+      display: grid;
+      place-items: center;
+      width: 32px;
+      height: 32px;
+      border: 1px solid var(--line);
+      background: var(--field);
+      color: var(--line-strong);
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .user-name {
+      overflow: hidden;
+      color: var(--ink);
+      font-weight: 800;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .user-meta {
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: var(--control-case);
+    }
+
+    .user-item.is-online .user-meta {
+      color: var(--ok);
+    }
+
+    .empty-users {
+      padding: 14px;
+      background: var(--panel);
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .chat-panel {
+      display: grid;
+      grid-template-rows: minmax(0, 1fr) auto;
+      min-height: 0;
+      overflow: hidden;
+      background: var(--chat-surface);
+    }
+
+    .message-stage {
+      position: relative;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    #messages {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      height: 100%;
+      min-height: 0;
+      overflow-y: auto;
+      padding: 18px;
+      background:
+        radial-gradient(circle at 100% 0%, var(--messages-glow), transparent 28%),
+        var(--messages-bg);
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    #messages > div {
+      margin: 0;
+    }
+
+    .chat-empty-state {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 800;
+      pointer-events: none;
+      text-align: center;
+      text-transform: var(--control-case);
+    }
+
+    .chat-empty-state[hidden] {
+      display: none;
+    }
+
+    .message-row {
+      width: fit-content;
+      max-width: min(72%, 680px);
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--line-strong);
+      border-radius: var(--radius);
+      background: var(--message-bg);
+      color: var(--ink);
+    }
+
+    .message-row.is-own,
+    .file-message.is-own {
+      align-self: flex-end;
+      border-right: 3px solid var(--line-strong);
+      border-left-width: 1px;
+      background: var(--message-own-bg);
+    }
+
+    .message-row::before {
+      content: var(--message-marker);
+      color: var(--line-strong);
+      font-weight: 700;
+    }
+
+    #messages a {
+      margin-left: 6px;
+      color: var(--ink);
+    }
+
+    .file-message {
+      display: grid;
+      gap: 8px;
+      width: fit-content;
+      max-width: min(72%, 680px);
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--line-strong);
+      border-radius: var(--radius);
+      background: var(--panel);
+    }
+
+    .file-heading {
+      color: var(--ink);
+      font-weight: bold;
+      text-transform: var(--control-case);
+    }
+
+    .file-heading::before {
+      content: var(--file-marker);
+      color: var(--line-strong);
+    }
+
+    .file-name {
+      color: var(--ink);
+      word-break: break-all;
+    }
+
+    .file-meta {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .preview-trigger {
+      width: fit-content;
+      max-width: 100%;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: inherit;
+      cursor: zoom-in;
+    }
+
+    .preview-trigger:hover:not(:disabled) {
+      background: transparent;
+    }
+
+    .file-thumbnail {
+      display: block;
+      max-width: min(100%, 280px);
+      max-height: 180px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      background: var(--field);
+      object-fit: contain;
+      image-rendering: auto;
+    }
+
+    .selected-file-preview {
+      display: grid;
+      gap: 8px;
+      margin: 0 0 10px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--ok);
+      border-radius: var(--radius);
+      background: var(--panel);
+    }
+
+    .selected-file-preview[hidden] {
+      display: none;
+    }
+
+    .file-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .file-actions button,
+    .file-actions a {
+      margin: 0;
+      padding: 7px 10px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      background: var(--field);
+      color: var(--ink);
+      font: inherit;
+      line-height: 1.2;
+      text-decoration: none;
+      text-transform: var(--control-case);
+      transition:
+        background 160ms ease,
+        color 160ms ease,
+        border-color 160ms ease;
+    }
+
+    .file-actions button:hover:not(:disabled),
+    .file-actions a:hover {
+      border-color: var(--line-strong);
+      background: var(--button-hover-bg);
+      color: var(--button-hover-ink);
+    }
+
+    .file-actions a::before {
+      content: var(--button-prefix);
+    }
+
+    .file-actions a::after {
+      content: var(--button-suffix);
+    }
+
+    .image-dialog {
+      width: min(920px, calc(100vw - 32px));
+      padding: 0;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius-panel);
+      background: var(--panel);
+      color: var(--ink);
+    }
+
+    .image-dialog::backdrop {
+      background: var(--dialog-backdrop);
+    }
+
+    .image-dialog-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      background: var(--field);
+    }
+
+    .image-dialog-title {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--ink);
+      font-weight: 700;
+    }
+
+    .image-dialog-close {
+      margin: 0;
+      padding: 6px 10px;
+      border-color: var(--line);
+      background: var(--panel);
+    }
+
+    .image-dialog img {
+      display: block;
+      width: 100%;
+      max-height: calc(100vh - 120px);
+      background: var(--field);
+      object-fit: contain;
+    }
+
+    .composer {
+      padding: 12px;
+      border-top: 1px solid var(--line);
+      background: var(--control-surface);
+    }
+
+    .composer-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: stretch;
+    }
+
+    .message-entry {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 42px;
+      min-width: 0;
+    }
+
+    .message-entry input {
+      border-right: 0;
+      border-top-right-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+
+    .file-picker {
+      position: relative;
+      display: grid;
+      place-items: center;
+      min-width: 42px;
+      min-height: 36px;
+      border: 1px solid var(--line);
+      border-top-left-radius: 0;
+      border-bottom-left-radius: 0;
+      background: var(--field);
+      color: var(--line-strong);
+      cursor: pointer;
+      font-weight: 900;
+    }
+
+    .file-picker:hover {
+      border-color: var(--line-strong);
+      background: var(--button-bg);
+    }
+
+    .file-picker::after {
+      position: absolute;
+      right: 0;
+      bottom: calc(100% + 8px);
+      z-index: 2;
+      width: max-content;
+      max-width: min(220px, calc(100vw - 32px));
+      padding: 6px 8px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      background: var(--panel);
+      color: var(--ink);
+      content: attr(data-tip);
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.2;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(4px);
+      transition:
+        opacity 160ms ease,
+        transform 160ms ease;
+    }
+
+    .file-picker:hover::after,
+    .file-picker:focus-visible::after,
+    .file-picker:focus-within::after {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .file-picker input {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+      clip-path: inset(50%);
+    }
+
+    .file-picker.is-disabled {
+      cursor: not-allowed;
+      opacity: 0.42;
+    }
+
+    #sendButton {
+      min-width: 88px;
+    }
+
+    .icon-button {
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      padding: 0;
+      border: 1px solid var(--line-strong);
+      background: var(--button-bg);
+      color: var(--line-strong);
+      font-size: 15px;
+      line-height: 1;
+    }
+
+    .settings-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 30;
+      pointer-events: none;
+    }
+
+    .settings-overlay.is-open {
+      pointer-events: auto;
+    }
+
+    .settings-backdrop {
+      position: absolute;
+      inset: 0;
+      min-height: 0;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: var(--dialog-backdrop);
+      opacity: 0;
+      transition: opacity 220ms ease;
+    }
+
+    .settings-backdrop:hover:not(:disabled) {
+      background: var(--dialog-backdrop);
+      color: inherit;
+    }
+
+    .settings-backdrop:active:not(:disabled) {
+      transform: none;
+    }
+
+    .settings-backdrop::before,
+    .settings-backdrop::after {
+      content: none;
+    }
+
+    .settings-overlay.is-open .settings-backdrop {
+      opacity: 1;
+    }
+
+    .settings-drawer {
+      position: absolute;
+      top: 0;
+      right: 0;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      width: min(420px, calc(100vw - 24px));
+      height: 100dvh;
+      border: 1px solid var(--line-strong);
+      border-right: 0;
+      background:
+        linear-gradient(180deg, var(--shell-beam), transparent 220px),
+        var(--panel);
+      border-radius: var(--radius-panel);
+      box-shadow:
+        -18px 0 70px var(--shell-shadow),
+        0 0 24px var(--debug-shadow);
+      transform: translateX(calc(100% + 24px));
+      transition: transform 260ms ease;
+    }
+
+    .settings-overlay.is-open .settings-drawer {
+      transform: translateX(0);
+    }
+
+    .settings-body {
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      gap: 12px;
+      min-height: 0;
+      padding: 12px;
+      overflow: hidden;
+    }
+
+    .settings-section {
+      display: grid;
+      gap: 8px;
+      min-height: 0;
+    }
+
+    .settings-log {
+      grid-template-rows: auto minmax(0, 1fr);
+    }
+
+    #log {
+      min-height: 0;
+      margin: 0;
+      overflow-y: auto;
+      padding: 12px;
+      border: 1px solid var(--line);
+      background: var(--field);
+      color: var(--muted);
+      font-family: var(--body-font);
+      font-size: 13px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    ::selection {
+      background: var(--line-strong);
+      color: var(--button-hover-ink);
+    }
+
+    html[data-theme="kawaii"] body::before {
+      mix-blend-mode: normal;
+    }
+
+    html[data-theme="kawaii"] .topbar,
+    html[data-theme="kawaii"] .user-list {
+      gap: 3px;
+      background: transparent;
+    }
+
+    html[data-theme="kawaii"] .message-row,
+    html[data-theme="kawaii"] .file-message {
+      border-width: 1px;
+    }
+
+    html[data-theme="glitch-party"] h1 {
+      text-shadow:
+        2px 0 var(--focus),
+        -2px 0 var(--ok);
+    }
+
+    html[data-theme="glitch-party"] .message-row:nth-child(odd),
+    html[data-theme="glitch-party"] .file-message:nth-child(odd) {
+      transform: rotate(-0.35deg);
+    }
+
+    html[data-theme="glitch-party"] .message-row:nth-child(even),
+    html[data-theme="glitch-party"] .file-message:nth-child(even) {
+      transform: rotate(0.35deg);
+    }
+
+    @media (max-width: 860px) {
+      body {
+        padding: 10px;
+      }
+
+      .topbar,
+      .chat-layout,
+      .room-controls,
+      .room-command,
+      .composer-row {
+        grid-template-columns: 1fr;
+      }
+
+      .room-action-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) 24px;
+      }
+
+      .chat-layout {
+        grid-template-rows: minmax(132px, 24%) minmax(0, 1fr);
+      }
+
+      .identity-strip {
+        align-content: start;
+      }
+
+      .user-panel {
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .user-list {
+        max-height: none;
+      }
+
+      .chat-panel {
+        min-height: 0;
+      }
+
+      .message-row,
+      .file-message {
+        max-width: 100%;
+      }
+
+      .file-actions {
+        display: grid;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="terminal-shell">
+    <header class="topbar">
+      <section class="identity-strip" aria-label="终端状态">
+        <div>
+          <h1>Private Channel</h1>
+          <div class="system-subtitle">P2P data channel chat console</div>
+        </div>
+      </section>
+
+      <section class="room-controls" aria-label="房间设置">
+        <div class="room-command">
+          <label class="field-label room-field" for="roomInput">
+            <span class="field-heading">
+              <span>房间号</span>
+              <output
+                id="roomConnectionTag"
+                class="status-tag"
+                data-state="offline"
+              >offline</output>
+            </span>
+            <input
+              id="roomInput"
+              value=""
+              maxlength="4"
+              inputmode="text"
+              autocapitalize="characters"
+              placeholder="A7K2"
+            />
+          </label>
+
+          <label class="field-label nickname-field" for="nicknameInput">
+            昵称
+            <input
+              id="nicknameInput"
+              value="游客"
+              maxlength="24"
+              placeholder="例如：小明"
+            />
+          </label>
+
+          <div class="room-action-row">
+            <button id="joinButton">加入</button>
+            <button id="shareButton" class="secondary-button">分享</button>
+            <output
+              id="shareStatus"
+              class="share-status"
+              aria-live="polite"
+            ></output>
+          </div>
+
+          <button
+            id="settingsButton"
+            class="secondary-button settings-button"
+            type="button"
+            title="打开设置"
+            aria-label="打开设置"
+            aria-expanded="false"
+            aria-controls="settingsOverlay"
+          >设置</button>
+        </div>
+      </section>
+    </header>
+
+    <div class="chat-layout">
+      <aside class="user-panel" aria-label="加入的用户">
+        <div class="panel-title">
+          <span>加入用户</span>
+          <output id="userCount" class="user-count">0</output>
+        </div>
+        <div id="userList" class="user-list"></div>
+      </aside>
+
+      <section class="chat-panel" aria-label="聊天框">
+        <div class="message-stage">
+          <div id="messages"></div>
+          <div
+            id="chatEmptyState"
+            class="chat-empty-state"
+            role="status"
+          >
+            请先加入房间
+          </div>
+        </div>
+
+        <footer class="composer">
+          <div id="selectedFilePreview" class="selected-file-preview" hidden></div>
+
+          <div class="composer-row">
+            <div class="message-entry">
+              <input
+                id="messageInput"
+                placeholder="请先加入房间"
+                disabled
+              />
+
+              <label
+                class="file-picker"
+                id="filePickerLabel"
+                for="fileInput"
+                role="button"
+                tabindex="0"
+                aria-label="添加文件，文件上限 20 MB"
+                data-tip="文件上限 20 MB"
+              >
+                <span aria-hidden="true">+</span>
+                <input id="fileInput" type="file" disabled />
+              </label>
+            </div>
+
+            <button id="sendButton" disabled>发送</button>
+          </div>
+        </footer>
+      </section>
+    </div>
+  </main>
+
+  <div id="settingsOverlay" class="settings-overlay" aria-hidden="true" inert>
+    <button
+      id="settingsBackdrop"
+      class="settings-backdrop"
+      type="button"
+      aria-label="关闭设置"
+    ></button>
+
+    <aside class="settings-drawer" aria-label="设置">
+      <div class="settings-header">
+        <span>设置</span>
+        <button
+          id="closeSettingsButton"
+          class="icon-button"
+          type="button"
+          title="关闭设置"
+          aria-label="关闭设置"
+        >
+          <span aria-hidden="true">x</span>
+        </button>
+      </div>
+
+      <div class="settings-body">
+        <section class="settings-section" aria-label="主题选择">
+          <div class="settings-section-title">
+            <span>主题</span>
+          </div>
+          <label class="field-label" for="themeSelect">
+            主题
+            <select id="themeSelect">
+              <option value="terminal-blue">Terminal Blue</option>
+              <option value="terminal-green">Green Phosphor</option>
+              <option value="terminal-amber">Amber CRT</option>
+              <option value="excel-grid">Excel Grid</option>
+              <option value="word-draft">Word Draft</option>
+              <option value="kawaii">Kawaii Pink</option>
+              <option value="glitch-party">Glitch Party</option>
+            </select>
+          </label>
+        </section>
+
+        <section class="settings-section settings-log" aria-label="调试日志">
+          <div class="settings-section-title">
+            <span>debug log</span>
+          </div>
+          <pre id="log"></pre>
+        </section>
+      </div>
+    </aside>
+  </div>
+
+  <dialog id="imagePreviewDialog" class="image-dialog">
+    <div class="image-dialog-header">
+      <div id="imagePreviewTitle" class="image-dialog-title"></div>
+      <form method="dialog">
+        <button class="image-dialog-close" aria-label="关闭预览">关闭</button>
+      </form>
+    </div>
+    <img id="imagePreview" alt="" />
+  </dialog>
+
+  <script>
+    // =========================
+    // 页面元素
+    // =========================
+    const roomInput = document.querySelector("#roomInput");
+    const nicknameInput = document.querySelector("#nicknameInput");
+    const joinButton = document.querySelector("#joinButton");
+    const shareButton = document.querySelector("#shareButton");
+    const shareStatus = document.querySelector("#shareStatus");
+    const themeSelect = document.querySelector("#themeSelect");
+    const roomConnectionTag =
+      document.querySelector("#roomConnectionTag");
+    const userListElement = document.querySelector("#userList");
+    const userCountElement = document.querySelector("#userCount");
+
+    const messageInput = document.querySelector("#messageInput");
+    const sendButton = document.querySelector("#sendButton");
+
+    const fileInput = document.querySelector("#fileInput");
+    const filePickerLabel =
+      document.querySelector("#filePickerLabel");
+    const selectedFilePreview =
+      document.querySelector("#selectedFilePreview");
+
+    const messagesElement = document.querySelector("#messages");
+    const chatEmptyState =
+      document.querySelector("#chatEmptyState");
+    const logElement = document.querySelector("#log");
+    const settingsButton = document.querySelector("#settingsButton");
+    const settingsOverlay =
+      document.querySelector("#settingsOverlay");
+    const settingsBackdrop =
+      document.querySelector("#settingsBackdrop");
+    const closeSettingsButton =
+      document.querySelector("#closeSettingsButton");
+    const imagePreviewDialog =
+      document.querySelector("#imagePreviewDialog");
+    const imagePreview = document.querySelector("#imagePreview");
+    const imagePreviewTitle =
+      document.querySelector("#imagePreviewTitle");
+
+    // =========================
+    // 配置
+    // =========================
+
+    // 每次发送 16 KB 二进制数据
+    const CHUNK_SIZE = 16 * 1024;
+
+    /*
+     * 如果 DataChannel 发送缓冲区超过 256 KB，
+     * 暂停继续读取和发送文件分块。
+     */
+    const MAX_BUFFERED_AMOUNT = 256 * 1024;
+
+    /*
+     * 当 bufferedAmount 下降到 64 KB 以下时，
+     * 会触发 bufferedamountlow 事件。
+     */
+    const BUFFERED_AMOUNT_LOW_THRESHOLD = 64 * 1024;
+
+    // 教学示例限制最大文件 20 MB
+    const MAX_FILE_SIZE = 20 * 1024 * 1024;
+
+    const ROOM_QUERY_KEY = "r";
+    const DEFAULT_THEME = "terminal-blue";
+    const THEME_STORAGE_KEY = "private-channel-theme";
+    const NICKNAME_STORAGE_KEY = "private-channel-nickname";
+    const BASE_TITLE = document.title;
+    const THEMES = new Set([
+      "terminal-blue",
+      "terminal-green",
+      "terminal-amber",
+      "excel-grid",
+      "word-draft",
+      "kawaii",
+      "glitch-party",
+    ]);
+    const SILICON_VALLEY_NAMES = [
+      "Steve Jobs",
+      "Steve Wozniak",
+      "Susan Kare",
+      "Bill Joy",
+      "Alan Kay",
+      "Gordon Moore",
+      "Robert Noyce",
+      "Andy Hertzfeld",
+      "Diane Greene",
+      "Marc Andreessen",
+      "Jim Clark",
+      "Reid Hoffman",
+      "Vinod Khosla",
+      "John Doerr",
+      "Marissa Mayer",
+      "Sheryl Sandberg",
+      "Larry Page",
+      "Sergey Brin",
+      "Grace Hopper",
+      "Doug Engelbart",
+    ];
+
+    // =========================
+    // 状态
+    // =========================
+    let socket = null;
+    let joined = false;
+    let signalConnecting = false;
+    let signalConnected = false;
+    let signalingDetached = false;
+    let isSendingFile = false;
+    let currentClientId = "";
+    let currentNickname = "";
+    let selectedPreviewUrl = "";
+    let currentRoomId = "";
+    let settingsPanelOpen = false;
+    let composingMessage = false;
+    let ignoreEnterUntil = 0;
+    let shareStatusTimer = 0;
+    let unreadMessageCount = 0;
+
+    /*
+     * peers:
+     *
+     * Map {
+     *   peerId => {
+     *     pc: RTCPeerConnection,
+     *     channel: RTCDataChannel | null,
+     *     pendingCandidates: [],
+     *     incomingFile: null
+     *   }
+     * }
+     */
+    const peers = new Map();
+    const peerProfiles = new Map();
+    const objectUrls = new Set();
+
+    // =========================
+    // 工具函数
+    // =========================
+    function log(message) {
+      console.log(message);
+
+      const now = new Date().toLocaleTimeString();
+
+      logElement.textContent += `[${now}] ${message}\n`;
+      logElement.scrollTop = logElement.scrollHeight;
+    }
+
+    function updateDocumentTitle() {
+      document.title =
+        unreadMessageCount > 0
+          ? `(${unreadMessageCount}) ${BASE_TITLE}`
+          : BASE_TITLE;
+    }
+
+    function clearUnreadMessages() {
+      unreadMessageCount = 0;
+      updateDocumentTitle();
+    }
+
+    function shouldNotifyIncomingMessage() {
+      return document.hidden || !document.hasFocus();
+    }
+
+    function requestNotificationPermission() {
+      if (!("Notification" in window)) {
+        return;
+      }
+
+      if (Notification.permission === "default") {
+        Promise.resolve(Notification.requestPermission()).catch(() => {});
+      }
+    }
+
+    function showBrowserNotification(sender, content) {
+      if (
+        !("Notification" in window) ||
+        Notification.permission !== "granted"
+      ) {
+        return;
+      }
+
+      const notification = new Notification(sender, {
+        body: content,
+        tag:
+          `private-channel-${currentRoomId || "room"}-` +
+          `${unreadMessageCount}-${Date.now()}`,
+      });
+
+      notification.addEventListener("click", () => {
+        window.focus();
+        clearUnreadMessages();
+        notification.close();
+      });
+    }
+
+    function notifyIncomingMessage(sender, content) {
+      const text = String(content || "").trim();
+
+      if (!text || !shouldNotifyIncomingMessage()) {
+        return;
+      }
+
+      unreadMessageCount += 1;
+      updateDocumentTitle();
+      showBrowserNotification(sender, text);
+    }
+
+    function applyTheme(theme, { persist = true } = {}) {
+      const nextTheme = THEMES.has(theme) ? theme : DEFAULT_THEME;
+
+      document.documentElement.dataset.theme = nextTheme;
+      themeSelect.value = nextTheme;
+
+      if (!persist) {
+        return;
+      }
+
+      try {
+        localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+      } catch {
+        // localStorage can be unavailable in private or restricted contexts.
+      }
+    }
+
+    function loadSavedTheme() {
+      let savedTheme = "";
+
+      try {
+        savedTheme = localStorage.getItem(THEME_STORAGE_KEY) || "";
+      } catch {
+        savedTheme = "";
+      }
+
+      applyTheme(savedTheme || DEFAULT_THEME, {
+        persist: false,
+      });
+    }
+
+    function generateNickname() {
+      const values = new Uint32Array(1);
+
+      if (globalThis.crypto?.getRandomValues) {
+        globalThis.crypto.getRandomValues(values);
+
+        return SILICON_VALLEY_NAMES[
+          values[0] % SILICON_VALLEY_NAMES.length
+        ];
+      }
+
+      return SILICON_VALLEY_NAMES[
+        Math.floor(Math.random() * SILICON_VALLEY_NAMES.length)
+      ];
+    }
+
+    function persistNickname(nickname) {
+      try {
+        localStorage.setItem(NICKNAME_STORAGE_KEY, nickname);
+      } catch {
+        // localStorage can be unavailable in private or restricted contexts.
+      }
+    }
+
+    function initializeNickname() {
+      let savedNickname = "";
+
+      try {
+        savedNickname = localStorage.getItem(NICKNAME_STORAGE_KEY) || "";
+      } catch {
+        savedNickname = "";
+      }
+
+      const nickname =
+        normalizeNickname(savedNickname) || generateNickname();
+
+      nicknameInput.value = nickname;
+    }
+
+    function normalizeRoomId(value) {
+      return String(value || "")
+        .trim()
+        .toUpperCase()
+        .replace(/[^0-9A-Z]/g, "")
+        .slice(0, 4);
+    }
+
+    function isValidRoomId(roomId) {
+      return /^[0-9A-Z]{4}$/.test(roomId);
+    }
+
+    function generateRoomId() {
+      const alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+      const values = new Uint32Array(4);
+
+      if (globalThis.crypto?.getRandomValues) {
+        globalThis.crypto.getRandomValues(values);
+
+        return [...values]
+          .map((value) => alphabet[value % alphabet.length])
+          .join("");
+      }
+
+      return Array.from({ length: 4 }, () =>
+        alphabet[Math.floor(Math.random() * alphabet.length)]
+      ).join("");
+    }
+
+    function generateTransferId() {
+      if (typeof globalThis.crypto?.randomUUID === "function") {
+        return globalThis.crypto.randomUUID();
+      }
+
+      if (globalThis.crypto?.getRandomValues) {
+        const values = new Uint32Array(4);
+        globalThis.crypto.getRandomValues(values);
+
+        return [...values]
+          .map((value) => value.toString(16).padStart(8, "0"))
+          .join("-");
+      }
+
+      return `file-${Date.now().toString(36)}-${Math.random()
+        .toString(36)
+        .slice(2, 10)}`;
+    }
+
+    function getRoomIdFromUrl() {
+      const url = new URL(location.href);
+      const roomId = normalizeRoomId(
+        url.searchParams.get(ROOM_QUERY_KEY)
+      );
+
+      return isValidRoomId(roomId) ? roomId : "";
+    }
+
+    function getActiveRoomId() {
+      const roomId = normalizeRoomId(currentRoomId || roomInput.value);
+
+      return isValidRoomId(roomId) ? roomId : "";
+    }
+
+    function buildRoomUrl(roomId) {
+      const url = new URL(location.href);
+      url.searchParams.set(ROOM_QUERY_KEY, roomId);
+      url.searchParams.delete("room");
+      url.searchParams.delete("roomId");
+      url.hash = "";
+
+      return url.toString();
+    }
+
+    function writeRoomIdToUrl(roomId) {
+      const shareUrl = buildRoomUrl(roomId);
+      history.replaceState(null, "", shareUrl);
+
+      return shareUrl;
+    }
+
+    function setShareStatus(state) {
+      window.clearTimeout(shareStatusTimer);
+
+      shareStatus.dataset.state = state;
+      shareStatus.textContent =
+        state === "success" ? "✓" : state === "error" ? "!" : "";
+      shareStatus.title =
+        state === "success"
+          ? "复制成功"
+          : state === "error"
+            ? "复制失败，链接已写入地址栏"
+            : "";
+      shareStatus.setAttribute(
+        "aria-label",
+        shareStatus.title || "分享状态"
+      );
+
+      if (!state) {
+        return;
+      }
+
+      shareStatusTimer = window.setTimeout(() => {
+        setShareStatus("");
+      }, 1600);
+    }
+
+    async function copyText(text) {
+      if (navigator.clipboard?.writeText) {
+        try {
+          await navigator.clipboard.writeText(text);
+          return;
+        } catch {
+          // Fall through to the legacy copy path below.
+        }
+      }
+
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      textArea.setAttribute("readonly", "");
+      textArea.style.position = "fixed";
+      textArea.style.inset = "0 auto auto -9999px";
+      textArea.style.opacity = "0";
+
+      document.body.append(textArea);
+      textArea.select();
+      textArea.setSelectionRange(0, text.length);
+
+      const copied = document.execCommand("copy");
+      textArea.remove();
+
+      if (!copied) {
+        throw new Error("clipboard unavailable");
+      }
+    }
+
+    async function shareCurrentRoom() {
+      let roomId = getActiveRoomId();
+
+      if (!roomId) {
+        roomId = generateRoomId();
+      }
+
+      currentRoomId = roomId;
+      roomInput.value = roomId;
+      renderUserList();
+
+      const shareUrl = writeRoomIdToUrl(roomId);
+      const urlRoomId = normalizeRoomId(
+        new URL(shareUrl).searchParams.get(ROOM_QUERY_KEY)
+      );
+
+      if (!isValidRoomId(urlRoomId)) {
+        setShareStatus("error");
+        log("分享链接缺少有效房间号。");
+        return;
+      }
+
+      try {
+        await copyText(shareUrl);
+        setShareStatus("success");
+        log(`分享链接已复制，房间号：${roomId}`);
+      } catch {
+        setShareStatus("error");
+        log(`分享链接已写入地址栏：${shareUrl}`);
+      }
+    }
+
+    function initializeRoomFromUrl() {
+      const roomId = getRoomIdFromUrl() || generateRoomId();
+
+      roomInput.value = roomId;
+      currentRoomId = "";
+      renderUserList();
+    }
+
+    function addMessage(message, options = {}) {
+      const row = document.createElement("div");
+      row.className = "message-row";
+      row.classList.toggle("is-own", Boolean(options.isOwn));
+      row.textContent = message;
+
+      messagesElement.append(row);
+      messagesElement.scrollTop = messagesElement.scrollHeight;
+    }
+
+    function normalizeNickname(value) {
+      return String(value || "")
+        .trim()
+        .replace(/\s+/g, " ")
+        .slice(0, 24);
+    }
+
+    function setPeerNickname(peerId, nickname) {
+      if (!peerId) {
+        return;
+      }
+
+      const normalized = normalizeNickname(nickname);
+
+      if (normalized) {
+        peerProfiles.set(peerId, {
+          nickname: normalized,
+        });
+
+        renderUserList();
+      }
+    }
+
+    function getPeerName(peerId) {
+      return peerProfiles.get(peerId)?.nickname || shortId(peerId);
+    }
+
+    function getPeerLabel(peerId) {
+      const name = getPeerName(peerId);
+      const id = shortId(peerId);
+
+      return name === id ? id : `${name}（${id}）`;
+    }
+
+    function getPeerStatus(peerId) {
+      const peer = peers.get(peerId);
+      const channelState = peer?.channel?.readyState;
+
+      if (channelState === "open") {
+        return "P2P";
+      }
+
+      if (peer?.pc?.connectionState) {
+        return peer.pc.connectionState;
+      }
+
+      return "signal";
+    }
+
+    function getLocalStatus(openChannels = getOpenChannels()) {
+      if (signalConnecting) {
+        return "linking";
+      }
+
+      if (openChannels.length > 0) {
+        return signalConnected && !signalingDetached
+          ? "p2p + signal"
+          : "p2p";
+      }
+
+      if (signalConnected) {
+        return "signal";
+      }
+
+      if (joined) {
+        return "waiting";
+      }
+
+      return "offline";
+    }
+
+    function setRoomConnectionTag(state) {
+      roomConnectionTag.textContent = state;
+      roomConnectionTag.dataset.state = state;
+    }
+
+    function updateChatEmptyState(canChat) {
+      if (canChat) {
+        chatEmptyState.hidden = true;
+        return;
+      }
+
+      chatEmptyState.hidden = false;
+      chatEmptyState.textContent =
+        joined || signalConnecting || signalConnected
+          ? "等待其他用户加入房间"
+          : "请先加入房间";
+    }
+
+    function renderUserList() {
+      const openChannels = getOpenChannels();
+      const users = [];
+
+      if (currentClientId || currentNickname) {
+        users.push({
+          id: currentClientId || "local",
+          name: currentNickname || "我",
+          meta: getLocalStatus(openChannels),
+          online: joined || signalConnected || openChannels.length > 0,
+          self: true,
+        });
+      }
+
+      for (const [peerId, profile] of peerProfiles.entries()) {
+        if (peerId === currentClientId) {
+          continue;
+        }
+
+        users.push({
+          id: peerId,
+          name: profile.nickname || shortId(peerId),
+          meta: getPeerStatus(peerId),
+          online: peers.get(peerId)?.channel?.readyState === "open",
+          self: false,
+        });
+      }
+
+      for (const peerId of peers.keys()) {
+        if (
+          peerId === currentClientId ||
+          users.some((user) => user.id === peerId)
+        ) {
+          continue;
+        }
+
+        users.push({
+          id: peerId,
+          name: shortId(peerId),
+          meta: getPeerStatus(peerId),
+          online: peers.get(peerId)?.channel?.readyState === "open",
+          self: false,
+        });
+      }
+
+      userListElement.replaceChildren();
+      userCountElement.textContent = String(users.length);
+
+      if (users.length === 0) {
+        const empty = document.createElement("div");
+        empty.className = "empty-users";
+        empty.textContent = "等待加入房间";
+        userListElement.append(empty);
+      }
+
+      users.forEach((user, index) => {
+        const item = document.createElement("div");
+        item.className = "user-item";
+        item.classList.toggle("is-online", user.online);
+
+        const userIndex = document.createElement("div");
+        userIndex.className = "user-index";
+        userIndex.textContent = String(index + 1).padStart(2, "0");
+
+        const body = document.createElement("div");
+
+        const name = document.createElement("div");
+        name.className = "user-name";
+        name.textContent = user.self ? `${user.name} / 我` : user.name;
+
+        const meta = document.createElement("div");
+        meta.className = "user-meta";
+        meta.textContent = user.self
+          ? user.meta
+          : `${user.meta} · ${shortId(user.id)}`;
+
+        body.append(name, meta);
+        item.append(userIndex, body);
+        userListElement.append(item);
+      });
+
+    }
+
+    function formatFileSize(size) {
+      if (size < 1024) {
+        return `${size} B`;
+      }
+
+      if (size < 1024 * 1024) {
+        return `${(size / 1024).toFixed(1)} KB`;
+      }
+
+      return `${(size / 1024 / 1024).toFixed(1)} MB`;
+    }
+
+    function isImageFile(fileType, fileName) {
+      if (fileType?.startsWith("image/")) {
+        return true;
+      }
+
+      return /\.(apng|avif|bmp|gif|jpe?g|png|svg|webp)$/i.test(
+        fileName || ""
+      );
+    }
+
+    function createTrackedObjectUrl(blob) {
+      const url = URL.createObjectURL(blob);
+      objectUrls.add(url);
+
+      return url;
+    }
+
+    function openImagePreview(url, fileName) {
+      imagePreview.src = url;
+      imagePreview.alt = fileName;
+      imagePreviewTitle.textContent = fileName;
+
+      if (typeof imagePreviewDialog.showModal === "function") {
+        imagePreviewDialog.showModal();
+        return;
+      }
+
+      window.open(url, "_blank", "noopener");
+    }
+
+    function addImagePreview(container, url, fileName) {
+      const previewButton = document.createElement("button");
+      previewButton.type = "button";
+      previewButton.className = "preview-trigger";
+      previewButton.title = "预览图片";
+
+      const image = document.createElement("img");
+      image.className = "file-thumbnail";
+      image.src = url;
+      image.alt = fileName;
+      image.loading = "lazy";
+
+      previewButton.append(image);
+      previewButton.addEventListener("click", () => {
+        openImagePreview(url, fileName);
+      });
+
+      container.append(previewButton);
+    }
+
+    function createFileActions(url, fileName, canPreview) {
+      const actions = document.createElement("div");
+      actions.className = "file-actions";
+
+      if (canPreview) {
+        const previewButton = document.createElement("button");
+        previewButton.type = "button";
+        previewButton.textContent = "预览";
+        previewButton.addEventListener("click", () => {
+          openImagePreview(url, fileName);
+        });
+        actions.append(previewButton);
+      }
+
+      const downloadLink = document.createElement("a");
+      downloadLink.href = url;
+      downloadLink.download = fileName;
+      downloadLink.textContent = "下载";
+
+      actions.append(downloadLink);
+
+      return actions;
+    }
+
+    function addFileMessage({
+      peerId,
+      fileName,
+      fileType,
+      blob,
+      isOwn = false,
+    }) {
+      const url = createTrackedObjectUrl(blob);
+      const canPreview = isImageFile(fileType || blob.type, fileName);
+      const row = document.createElement("div");
+      row.className = "file-message";
+      row.classList.toggle("is-own", isOwn);
+
+      const heading = document.createElement("div");
+      heading.className = "file-heading";
+      heading.textContent = isOwn
+        ? "我发送了文件"
+        : `${getPeerName(peerId)} 发来文件`;
+
+      const name = document.createElement("div");
+      name.className = "file-name";
+      name.textContent = fileName;
+
+      const meta = document.createElement("div");
+      meta.className = "file-meta";
+      meta.textContent = `${formatFileSize(blob.size)} · ${
+        fileType || blob.type || "未知类型"
+      }`;
+
+      row.append(heading, name, meta);
+
+      if (canPreview) {
+        addImagePreview(row, url, fileName);
+      }
+
+      row.append(createFileActions(url, fileName, canPreview));
+      messagesElement.append(row);
+      messagesElement.scrollTop = messagesElement.scrollHeight;
+    }
+
+    function shortId(id) {
+      return id ? id.slice(0, 8) : "未知用户";
+    }
+
+    function getOpenChannels() {
+      return [...peers.values()]
+        .map((peer) => peer.channel)
+        .filter((channel) => channel?.readyState === "open");
+    }
+
+    function sendSignal(message) {
+      if (socket?.readyState !== WebSocket.OPEN) {
+        log("信令连接尚未建立，无法发送信令消息。");
+        return;
+      }
+
+      socket.send(JSON.stringify(message));
+    }
+
+    function sendProfile(channel) {
+      if (channel?.readyState !== "open") {
+        return;
+      }
+
+      channel.send(
+        JSON.stringify({
+          kind: "profile",
+          nickname: currentNickname,
+        })
+      );
+    }
+
+    function updateRoomControls(openChannels) {
+      const hasOpenChannels = openChannels.length > 0;
+      const locked =
+        signalConnecting ||
+        signalConnected ||
+        hasOpenChannels;
+
+      joinButton.disabled = locked;
+      roomInput.disabled = locked;
+      nicknameInput.disabled = locked;
+    }
+
+    function updateChatControls() {
+      const openChannels = getOpenChannels();
+      const canChat = openChannels.length > 0;
+      const signalState = canChat
+        ? signalConnected && !signalingDetached
+          ? "p2p + signal"
+          : "p2p direct"
+        : signalConnected
+          ? "signal online"
+          : signalConnecting
+            ? "linking"
+            : joined
+              ? "waiting"
+              : "offline";
+      const tagState = signalConnecting
+        ? "linking"
+        : signalConnected || canChat
+          ? "online"
+          : "offline";
+
+      messageInput.disabled = !canChat;
+      sendButton.disabled = !canChat;
+
+      fileInput.disabled = !canChat;
+      filePickerLabel.classList.toggle("is-disabled", !canChat);
+      filePickerLabel.setAttribute(
+        "aria-disabled",
+        String(!canChat)
+      );
+      filePickerLabel.tabIndex = canChat ? 0 : -1;
+
+      updateRoomControls(openChannels);
+      setRoomConnectionTag(tagState);
+      syncSelectedFilePreviewActions();
+      updateChatEmptyState(canChat);
+      renderUserList();
+
+      if (canChat) {
+        messageInput.placeholder =
+          `${signalState} · 输入消息`;
+      } else if (joined || signalConnecting || signalConnected) {
+        messageInput.placeholder = "正在等待其他用户加入房间……";
+      } else {
+        messageInput.placeholder = "请先加入房间";
+      }
+    }
+
+    // =========================
+    // WebRTC Peer 管理
+    // =========================
+    function createPeer(peerId) {
+      const existingPeer = peers.get(peerId);
+
+      if (existingPeer) {
+        return existingPeer;
+      }
+
+      const pc = new RTCPeerConnection({
+        iceServers: [
+          {
+            urls: "stun:stun.l.google.com:19302",
+          },
+        ],
+      });
+
+      const peer = {
+        pc,
+        channel: null,
+        pendingCandidates: [],
+        incomingFile: null,
+        messageQueue: Promise.resolve(),
+      };
+
+      peers.set(peerId, peer);
+
+      /*
+       * 本地发现 ICE Candidate 时，
+       * 通过 WebSocket 信令服务器转发给对方。
+       */
+      pc.onicecandidate = (event) => {
+        if (!event.candidate) {
+          return;
+        }
+
+        sendSignal({
+          type: "candidate",
+          to: peerId,
+          candidate: event.candidate.toJSON(),
+        });
+      };
+
+      pc.onconnectionstatechange = () => {
+        log(
+          `与 ${getPeerLabel(peerId)} 的连接状态：${pc.connectionState}`
+        );
+
+        if (pc.connectionState === "failed") {
+          log(`与 ${getPeerLabel(peerId)} 的连接失败。`);
+        }
+
+        updateChatControls();
+      };
+
+      /*
+       * 如果对方主动 createDataChannel，
+       * 当前用户会在这里接收到它。
+       */
+      pc.ondatachannel = (event) => {
+        log(`收到 ${getPeerLabel(peerId)} 创建的数据通道。`);
+
+        attachDataChannel(peerId, event.channel);
+      };
+
+      return peer;
+    }
+
+    function attachDataChannel(peerId, channel) {
+      const peer = peers.get(peerId);
+
+      if (!peer) {
+        return;
+      }
+
+      peer.channel = channel;
+
+      /*
+       * 二进制消息接收为 ArrayBuffer。
+       * 文件分块会通过 ArrayBuffer 接收。
+       */
+      channel.binaryType = "arraybuffer";
+
+      channel.bufferedAmountLowThreshold =
+        BUFFERED_AMOUNT_LOW_THRESHOLD;
+
+      channel.onopen = () => {
+        log(`与 ${getPeerLabel(peerId)} 的聊天通道已打开。`);
+        sendProfile(channel);
+        updateChatControls();
+        detachSignalingServer();
+      };
+
+      channel.onclose = () => {
+        log(`与 ${getPeerLabel(peerId)} 的聊天通道已关闭。`);
+
+        if (!signalConnected && getOpenChannels().length === 0) {
+          joined = false;
+          signalingDetached = false;
+        }
+
+        updateChatControls();
+      };
+
+      channel.onerror = (error) => {
+        log(`与 ${getPeerLabel(peerId)} 的数据通道发生错误。`);
+        console.error(error);
+      };
+
+      channel.onmessage = (event) => {
+        peer.messageQueue = peer.messageQueue
+          .then(() => handleDataMessage(peerId, event.data))
+          .catch((error) => {
+            log(`处理来自 ${getPeerLabel(peerId)} 的数据失败：${error.message}`);
+            console.error(error);
+          });
+      };
+    }
+
+    async function flushPendingCandidates(peer) {
+      for (const candidate of peer.pendingCandidates) {
+        await peer.pc.addIceCandidate(candidate);
+      }
+
+      peer.pendingCandidates = [];
+    }
+
+    /*
+     * 新加入房间的用户，对已经存在的用户创建 Offer。
+     */
+    async function createOfferForPeer(peerId) {
+      const peer = createPeer(peerId);
+
+      /*
+       * 创建可靠、有序的 DataChannel。
+       * 默认就是 reliable + ordered，适合聊天和文件。
+       */
+      const channel = peer.pc.createDataChannel("chat");
+
+      attachDataChannel(peerId, channel);
+
+      const offer = await peer.pc.createOffer();
+      await peer.pc.setLocalDescription(offer);
+
+      sendSignal({
+        type: "offer",
+        to: peerId,
+        sdp: peer.pc.localDescription,
+      });
+
+      log(`已向 ${getPeerLabel(peerId)} 发送 Offer。`);
+    }
+
+    // =========================
+    // 数据通道消息协议
+    // =========================
+    /*
+     * 文本消息：
+     * { kind: "chat", text: "你好", nickname: "小明" }
+     *
+     * 用户资料：
+     * { kind: "profile", nickname: "小明" }
+     *
+     * 文件开始：
+     * {
+     *   kind: "file-start",
+     *   id: "文件 UUID",
+     *   name: "hello.txt",
+     *   nickname: "小明",
+     *   fileType: "text/plain",
+     *   size: 123
+     * }
+     *
+     * 文件内容：
+     * ArrayBuffer
+     *
+     * 文件结束：
+     * { kind: "file-end", id: "文件 UUID" }
+     */
+    function receiveFileChunk(peerId, data) {
+      const peer = peers.get(peerId);
+      const incomingFile = peer?.incomingFile;
+
+      if (!incomingFile) {
+        log(`收到来自 ${getPeerLabel(peerId)} 的未知二进制数据。`);
+        return;
+      }
+
+      incomingFile.chunks.push(data);
+      incomingFile.receivedBytes += data.byteLength;
+    }
+
+    async function handleDataMessage(peerId, data) {
+      const peer = peers.get(peerId);
+
+      if (!peer) {
+        return;
+      }
+
+      // 处理文本数据（JSON 控制消息）
+      if (typeof data === "string") {
+        let message;
+
+        try {
+          message = JSON.parse(data);
+        } catch {
+          // 兼容旧版本直接发送的纯文本
+          const sender = getPeerName(peerId);
+          const text = String(data);
+
+          addMessage(`${sender}：${text}`);
+          notifyIncomingMessage(sender, text);
+          return;
+        }
+
+        if (message.kind === "profile") {
+          setPeerNickname(peerId, message.nickname);
+          return;
+        }
+
+        // 普通聊天消息
+        if (message.kind === "chat") {
+          setPeerNickname(peerId, message.nickname);
+          const sender = getPeerName(peerId);
+          const text = String(message.text || "");
+
+          addMessage(`${sender}：${text}`);
+          notifyIncomingMessage(sender, text);
+          return;
+        }
+
+        // 文件开始
+        if (message.kind === "file-start") {
+          setPeerNickname(peerId, message.nickname);
+
+          const isValidFileInfo =
+            message.id &&
+            message.name &&
+            Number.isFinite(message.size) &&
+            message.size >= 0 &&
+            message.size <= MAX_FILE_SIZE;
+
+          if (!isValidFileInfo) {
+            log(`拒绝来自 ${getPeerLabel(peerId)} 的非法或过大文件。`);
+            return;
+          }
+
+          peer.incomingFile = {
+            id: message.id,
+            name: message.name,
+            type: message.fileType || "application/octet-stream",
+            size: message.size,
+            receivedBytes: 0,
+            chunks: [],
+          };
+
+          addMessage(
+            `${getPeerName(peerId)} 正在发送文件：` +
+            `${message.name}（${formatFileSize(message.size)}）`
+          );
+
+          return;
+        }
+
+        // 文件结束
+        if (message.kind === "file-end") {
+          const incomingFile = peer.incomingFile;
+
+          if (!incomingFile || incomingFile.id !== message.id) {
+            return;
+          }
+
+          if (incomingFile.receivedBytes !== incomingFile.size) {
+            log(
+              `文件大小不一致：预期 ${incomingFile.size} 字节，` +
+              `实际收到 ${incomingFile.receivedBytes} 字节。`
+            );
+
+            peer.incomingFile = null;
+            return;
+          }
+
+          const blob = new Blob(incomingFile.chunks, {
+            type: incomingFile.type,
+          });
+
+          addFileMessage({
+            peerId,
+            fileName: incomingFile.name,
+            fileType: incomingFile.type,
+            blob,
+          });
+          notifyIncomingMessage(
+            getPeerName(peerId),
+            `发来文件：${incomingFile.name}`
+          );
+
+          log(`已接收文件：${incomingFile.name}`);
+
+          peer.incomingFile = null;
+          return;
+        }
+
+        log(`收到未知数据消息类型：${message.kind}`);
+        return;
+      }
+
+      // 处理二进制数据：文件分块
+      if (data instanceof ArrayBuffer) {
+        receiveFileChunk(peerId, data);
+        return;
+      }
+
+      if (data instanceof Blob) {
+        const buffer = await data.arrayBuffer();
+        receiveFileChunk(peerId, buffer);
+      }
+    }
+
+    // =========================
+    // WebSocket 信令消息处理
+    // =========================
+    async function handleSignalMessage(message) {
+      switch (message.type) {
+        // 加入房间后，服务器返回当前已存在的用户列表
+        case "peers": {
+          currentClientId = message.peerId || currentClientId;
+          currentNickname = normalizeNickname(
+            message.nickname || currentNickname
+          );
+          nicknameInput.value = currentNickname;
+
+          if (Array.isArray(message.peers)) {
+            for (const peer of message.peers) {
+              setPeerNickname(peer.id, peer.nickname);
+            }
+          }
+
+          log(`加入成功，房间当前已有 ${message.peerIds.length} 位用户。`);
+
+          /*
+           * 当前用户是后加入者，
+           * 所以主动向房间中已有用户发送 Offer。
+           */
+          for (const peerId of message.peerIds) {
+            await createOfferForPeer(peerId);
+          }
+
+          updateChatControls();
+          break;
+        }
+
+        // 有新用户加入，仅显示日志。
+        // 不由旧用户主动 Offer，避免协商冲突。
+        case "peer-joined": {
+          setPeerNickname(message.peerId, message.nickname);
+          log(`${getPeerLabel(message.peerId)} 加入了房间。`);
+          break;
+        }
+
+        // 收到对方 Offer
+        case "offer": {
+          setPeerNickname(message.from, message.fromNickname);
+          const peer = createPeer(message.from);
+
+          await peer.pc.setRemoteDescription(message.sdp);
+          await flushPendingCandidates(peer);
+
+          const answer = await peer.pc.createAnswer();
+          await peer.pc.setLocalDescription(answer);
+
+          sendSignal({
+            type: "answer",
+            to: message.from,
+            sdp: peer.pc.localDescription,
+          });
+
+          log(`已回复 ${getPeerLabel(message.from)} 的 Answer。`);
+          break;
+        }
+
+        // 收到对方 Answer
+        case "answer": {
+          const peer = peers.get(message.from);
+          setPeerNickname(message.from, message.fromNickname);
+
+          if (!peer) {
+            log(`收到未知用户 ${getPeerLabel(message.from)} 的 Answer。`);
+            return;
+          }
+
+          await peer.pc.setRemoteDescription(message.sdp);
+          await flushPendingCandidates(peer);
+
+          log(`已收到 ${getPeerLabel(message.from)} 的 Answer。`);
+          break;
+        }
+
+        // 收到对方 ICE Candidate
+        case "candidate": {
+          setPeerNickname(message.from, message.fromNickname);
+          const peer = createPeer(message.from);
+
+          /*
+           * Candidate 可能比 Offer / Answer 更早到达。
+           * 没有 remoteDescription 时先缓存。
+           */
+          if (peer.pc.remoteDescription) {
+            await peer.pc.addIceCandidate(message.candidate);
+          } else {
+            peer.pendingCandidates.push(message.candidate);
+          }
+
+          break;
+        }
+
+        // 对方离开房间
+        case "peer-left": {
+          setPeerNickname(message.peerId, message.nickname);
+          const peer = peers.get(message.peerId);
+
+          if (peer) {
+            peer.channel?.close();
+            peer.pc.close();
+            peers.delete(message.peerId);
+          }
+
+          log(`${getPeerLabel(message.peerId)} 离开了房间。`);
+          peerProfiles.delete(message.peerId);
+          updateChatControls();
+          break;
+        }
+
+        case "peer-detached": {
+          setPeerNickname(message.peerId, message.nickname);
+          log(
+            `${getPeerLabel(message.peerId)} 已释放信令，P2P 通道保持连接。`
+          );
+          break;
+        }
+
+        case "signal-detached": {
+          signalingDetached = true;
+          signalConnecting = false;
+          signalConnected = false;
+          log("信令服务已释放，现有 P2P 通道保持连接。");
+
+          if (socket?.readyState === WebSocket.OPEN) {
+            socket.close(1000, "signal-detached");
+          }
+
+          updateChatControls();
+          break;
+        }
+
+        case "error": {
+          log(`服务器错误：${message.message}`);
+          break;
+        }
+
+        default:
+          log(`收到未知信令消息：${message.type}`);
+      }
+    }
+
+    // =========================
+    // 连接信令服务器并加入房间
+    // =========================
+    function connectAndJoin(roomId) {
+      const protocol = location.protocol === "https:" ? "wss" : "ws";
+      const wsUrl = `${protocol}://${location.host}`;
+      currentNickname =
+        normalizeNickname(nicknameInput.value) || generateNickname();
+      nicknameInput.value = currentNickname;
+      persistNickname(currentNickname);
+      currentRoomId = roomId;
+      signalConnecting = true;
+      signalConnected = false;
+      signalingDetached = false;
+
+      updateChatControls();
+
+      socket = new WebSocket(wsUrl);
+
+      socket.onopen = () => {
+        signalConnecting = false;
+        signalConnected = true;
+        joined = true;
+
+        log("信令服务器连接成功。");
+
+        sendSignal({
+          type: "join",
+          roomId,
+          nickname: currentNickname,
+        });
+
+        updateChatControls();
+      };
+
+      socket.onmessage = async (event) => {
+        try {
+          const message = JSON.parse(event.data);
+          await handleSignalMessage(message);
+        } catch (error) {
+          log(`处理信令消息失败：${error.message}`);
+          console.error(error);
+        }
+      };
+
+      socket.onclose = () => {
+        signalConnecting = false;
+        signalConnected = false;
+
+        if (getOpenChannels().length === 0) {
+          joined = false;
+        }
+
+        if (signalingDetached) {
+          log("信令连接已关闭，继续使用现有 P2P 通道。");
+        } else {
+          log("与信令服务器断开连接。");
+        }
+
+        socket = null;
+
+        updateChatControls();
+      };
+
+      socket.onerror = (error) => {
+        log("信令服务器连接发生错误。");
+        console.error(error);
+      };
+    }
+
+    function detachSignalingServer() {
+      const openChannels = getOpenChannels();
+
+      if (
+        signalingDetached ||
+        !signalConnected ||
+        openChannels.length === 0
+      ) {
+        return;
+      }
+
+      const hasPendingPeer = [...peers.values()].some((peer) => {
+        const state = peer.pc.connectionState;
+
+        if (state === "closed" || state === "failed") {
+          return false;
+        }
+
+        return peer.channel?.readyState !== "open";
+      });
+
+      if (hasPendingPeer) {
+        return;
+      }
+
+      signalingDetached = true;
+
+      sendSignal({
+        type: "detach-signal",
+      });
+
+      log("P2P 通道已打开，自动释放信令连接。");
+      updateChatControls();
+    }
+
+    function setSettingsPanelOpen(open) {
+      settingsPanelOpen = open;
+      settingsOverlay.classList.toggle("is-open", open);
+      settingsOverlay.setAttribute("aria-hidden", String(!open));
+      settingsOverlay.toggleAttribute("inert", !open);
+      settingsButton.setAttribute(
+        "aria-expanded",
+        String(open)
+      );
+      settingsButton.title = open
+        ? "关闭设置"
+        : "打开设置";
+      settingsButton.setAttribute(
+        "aria-label",
+        settingsButton.title
+      );
+
+      if (open) {
+        closeSettingsButton.focus({
+          preventScroll: true,
+        });
+        logElement.scrollTop = logElement.scrollHeight;
+      } else if (document.activeElement === closeSettingsButton) {
+        settingsButton.focus({
+          preventScroll: true,
+        });
+      }
+    }
+
+    // =========================
+    // 文本聊天发送
+    // =========================
+    function sendChatMessage() {
+      const text = messageInput.value.trim();
+
+      if (!text) {
+        return;
+      }
+
+      const openChannels = getOpenChannels();
+
+      if (openChannels.length === 0) {
+        log("当前没有可用的数据通道。");
+        return;
+      }
+
+      const payload = JSON.stringify({
+        kind: "chat",
+        nickname: currentNickname,
+        text,
+      });
+
+      // 向每一个已连接成员直接发送消息
+      for (const channel of openChannels) {
+        channel.send(payload);
+      }
+
+      addMessage(`我：${text}`, {
+        isOwn: true,
+      });
+
+      messageInput.value = "";
+      messageInput.focus();
+    }
+
+    // =========================
+    // 文件发送
+    // =========================
+    function waitForBufferLow(channel) {
+      return new Promise((resolve) => {
+        const handleLow = () => {
+          channel.removeEventListener(
+            "bufferedamountlow",
+            handleLow
+          );
+
+          resolve();
+        };
+
+        channel.addEventListener(
+          "bufferedamountlow",
+          handleLow
+        );
+
+        /*
+         * 避免注册事件前后状态变化，
+         * 导致 Promise 永远不结束。
+         */
+        if (channel.bufferedAmount <= MAX_BUFFERED_AMOUNT) {
+          handleLow();
+        }
+      });
+    }
+
+    async function sendFileToChannel(channel, file, fileId) {
+      // 通知接收方：文件传输开始
+      channel.send(
+        JSON.stringify({
+          kind: "file-start",
+          id: fileId,
+          name: file.name,
+          nickname: currentNickname,
+          fileType: file.type,
+          size: file.size,
+        })
+      );
+
+      // 分块读取并发送文件
+      for (
+        let offset = 0;
+        offset < file.size;
+        offset += CHUNK_SIZE
+      ) {
+        if (channel.readyState !== "open") {
+          throw new Error("数据通道已关闭，文件发送中断。");
+        }
+
+        /*
+         * 缓冲区积压过大时，暂停发送。
+         * 防止大文件导致浏览器占用过多内存。
+         */
+        if (channel.bufferedAmount > MAX_BUFFERED_AMOUNT) {
+          await waitForBufferLow(channel);
+        }
+
+        const chunk = file.slice(
+          offset,
+          offset + CHUNK_SIZE
+        );
+
+        const buffer = await chunk.arrayBuffer();
+
+        channel.send(buffer);
+      }
+
+      // 通知接收方：文件传输结束
+      channel.send(
+        JSON.stringify({
+          kind: "file-end",
+          id: fileId,
+        })
+      );
+    }
+
+    async function sendSelectedFile() {
+      const openChannels = getOpenChannels();
+
+      if (openChannels.length === 0) {
+        log("当前没有可用的数据通道。");
+        return;
+      }
+
+      const file = fileInput.files[0];
+
+      if (!file) {
+        fileInput.click();
+        return;
+      }
+
+      if (file.size > MAX_FILE_SIZE) {
+        alert("示例暂时只允许发送不超过 20 MB 的文件。");
+        fileInput.value = "";
+        renderSelectedFilePreview();
+        updateChatControls();
+        return;
+      }
+
+      isSendingFile = true;
+      updateChatControls();
+
+      try {
+        const fileId = generateTransferId();
+
+        addMessage(
+          `我正在发送文件：${file.name}（${formatFileSize(file.size)}）`,
+          {
+            isOwn: true,
+          }
+        );
+
+        /*
+         * 每个用户都有独立 DataChannel，
+         * 所以必须向每条通道分别发送文件。
+         */
+        const results = await Promise.allSettled(
+          openChannels.map((channel) =>
+            sendFileToChannel(channel, file, fileId)
+          )
+        );
+
+        for (const result of results) {
+          if (result.status === "rejected") {
+            log(`文件发送失败：${result.reason.message}`);
+          }
+        }
+
+        const sentCount = results.filter(
+          (result) => result.status === "fulfilled"
+        ).length;
+
+        log(
+          `文件发送完成：${file.name}（${sentCount}/${openChannels.length}）`
+        );
+
+        if (sentCount > 0) {
+          addFileMessage({
+            fileName: file.name,
+            fileType: file.type,
+            blob: file,
+            isOwn: true,
+          });
+        }
+      } catch (error) {
+        log(`文件发送失败：${error.message}`);
+        console.error(error);
+      } finally {
+        isSendingFile = false;
+        fileInput.value = "";
+        renderSelectedFilePreview();
+        updateChatControls();
+      }
+    }
+
+    function clearSelectedFile() {
+      fileInput.value = "";
+      renderSelectedFilePreview();
+      updateChatControls();
+    }
+
+    function syncSelectedFilePreviewActions() {
+      const sendSelectedFileButton =
+        selectedFilePreview.querySelector("[data-send-selected-file]");
+
+      if (!sendSelectedFileButton) {
+        return;
+      }
+
+      const canChat = getOpenChannels().length > 0;
+      sendSelectedFileButton.disabled = !canChat || isSendingFile;
+      sendSelectedFileButton.textContent = isSendingFile
+        ? "发送中"
+        : "发送文件";
+    }
+
+    function renderSelectedFilePreview() {
+      if (selectedPreviewUrl) {
+        URL.revokeObjectURL(selectedPreviewUrl);
+        objectUrls.delete(selectedPreviewUrl);
+        selectedPreviewUrl = "";
+      }
+
+      selectedFilePreview.replaceChildren();
+
+      const file = fileInput.files[0];
+
+      if (!file) {
+        selectedFilePreview.hidden = true;
+        return;
+      }
+
+      selectedFilePreview.hidden = false;
+
+      const title = document.createElement("div");
+      title.className = "file-heading";
+      title.textContent = "已选择文件";
+
+      const name = document.createElement("div");
+      name.className = "file-name";
+      name.textContent = file.name;
+
+      const meta = document.createElement("div");
+      meta.className = "file-meta";
+      meta.textContent = `${formatFileSize(file.size)} · ${
+        file.type || "未知类型"
+      }`;
+
+      selectedFilePreview.append(title, name, meta);
+
+      if (isImageFile(file.type, file.name)) {
+        selectedPreviewUrl = createTrackedObjectUrl(file);
+        addImagePreview(selectedFilePreview, selectedPreviewUrl, file.name);
+      }
+
+      const actions = document.createElement("div");
+      actions.className = "file-actions";
+
+      const sendSelectedFileButton = document.createElement("button");
+      sendSelectedFileButton.type = "button";
+      sendSelectedFileButton.dataset.sendSelectedFile = "true";
+      sendSelectedFileButton.textContent = "发送文件";
+      sendSelectedFileButton.addEventListener("click", sendSelectedFile);
+
+      const cancelFileButton = document.createElement("button");
+      cancelFileButton.type = "button";
+      cancelFileButton.className = "secondary-button";
+      cancelFileButton.textContent = "取消";
+      cancelFileButton.addEventListener("click", clearSelectedFile);
+
+      actions.append(sendSelectedFileButton, cancelFileButton);
+      selectedFilePreview.append(actions);
+      syncSelectedFilePreviewActions();
+    }
+
+    // =========================
+    // 事件绑定
+    // =========================
+    joinButton.addEventListener("click", () => {
+      const roomId = normalizeRoomId(roomInput.value);
+
+      if (!isValidRoomId(roomId)) {
+        alert("请输入 4 位房间号。");
+        return;
+      }
+
+      requestNotificationPermission();
+      roomInput.value = roomId;
+      connectAndJoin(roomId);
+    });
+
+    roomInput.addEventListener("input", () => {
+      roomInput.value = normalizeRoomId(roomInput.value);
+      currentRoomId = "";
+      renderUserList();
+    });
+
+    shareButton.addEventListener("click", shareCurrentRoom);
+
+    themeSelect.addEventListener("change", () => {
+      applyTheme(themeSelect.value);
+    });
+
+    sendButton.addEventListener("click", sendChatMessage);
+
+    settingsButton.addEventListener("click", () => {
+      setSettingsPanelOpen(!settingsPanelOpen);
+    });
+
+    settingsBackdrop.addEventListener("click", () => {
+      setSettingsPanelOpen(false);
+    });
+
+    closeSettingsButton.addEventListener("click", () => {
+      setSettingsPanelOpen(false);
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && settingsPanelOpen) {
+        setSettingsPanelOpen(false);
+      }
+    });
+
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) {
+        clearUnreadMessages();
+      }
+    });
+
+    window.addEventListener("focus", clearUnreadMessages);
+
+    messageInput.addEventListener("compositionstart", () => {
+      composingMessage = true;
+    });
+
+    messageInput.addEventListener("compositionend", () => {
+      composingMessage = false;
+      ignoreEnterUntil = performance.now() + 80;
+    });
+
+    messageInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        if (
+          event.isComposing ||
+          composingMessage ||
+          event.keyCode === 229 ||
+          performance.now() < ignoreEnterUntil
+        ) {
+          return;
+        }
+
+        event.preventDefault();
+        sendChatMessage();
+      }
+    });
+
+    fileInput.addEventListener("change", () => {
+      renderSelectedFilePreview();
+      updateChatControls();
+    });
+
+    filePickerLabel.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") {
+        return;
+      }
+
+      if (fileInput.disabled) {
+        return;
+      }
+
+      event.preventDefault();
+      fileInput.click();
+    });
+
+    imagePreviewDialog.addEventListener("close", () => {
+      imagePreview.removeAttribute("src");
+      imagePreview.alt = "";
+      imagePreviewTitle.textContent = "";
+    });
+
+    window.addEventListener("beforeunload", () => {
+      for (const url of objectUrls) {
+        URL.revokeObjectURL(url);
+      }
+    });
+
+    loadSavedTheme();
+    initializeNickname();
+    initializeRoomFromUrl();
+    updateChatControls();
+  </script>
+</body>
+</html>
