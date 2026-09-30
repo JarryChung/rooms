@@ -3,6 +3,11 @@ const MAX_SIGNAL_CHARS = 256 * 1024;
 const WS_OPEN = 1;
 const ALLOWED_SIGNAL_TYPES = new Set(["offer", "answer", "candidate"]);
 
+const localContext = {
+  rooms: new Map(),
+  socketState: new WeakMap(),
+};
+
 /*
  * This is intentionally process-local state.
  *
@@ -10,9 +15,6 @@ const ALLOWED_SIGNAL_TYPES = new Set(["offer", "answer", "candidate"]);
  * isolate. It is fine for demos and small best-effort deployments, but it is
  * not shared across isolates, data centers, deploys, or isolate restarts.
  */
-const rooms = new Map();
-const socketState = new WeakMap();
-
 function send(ws, message) {
   if (ws.readyState === WS_OPEN) {
     ws.send(JSON.stringify(message));
@@ -48,16 +50,16 @@ function isValidRoomId(roomId) {
   return /^[0-9A-Z]{4}$/.test(roomId);
 }
 
-function getState(ws) {
-  return socketState.get(ws);
+function getState(context, ws) {
+  return context.socketState.get(ws);
 }
 
-function leaveRoom(ws, { notify = true } = {}) {
-  const state = getState(ws);
+function leaveRoom(context, ws, { notify = true } = {}) {
+  const state = getState(context, ws);
 
   if (!state?.roomId) return;
 
-  const room = rooms.get(state.roomId);
+  const room = context.rooms.get(state.roomId);
 
   if (room) {
     room.delete(state.clientId);
@@ -71,7 +73,7 @@ function leaveRoom(ws, { notify = true } = {}) {
     }
 
     if (room.size === 0) {
-      rooms.delete(state.roomId);
+      context.rooms.delete(state.roomId);
     }
   }
 
@@ -90,8 +92,8 @@ function getEventText(data) {
   return "";
 }
 
-function handleJoin(ws, message) {
-  const state = getState(ws);
+function handleJoin(context, ws, message) {
+  const state = getState(context, ws);
   const roomId = normalizeRoomId(message.roomId);
 
   if (!isValidRoomId(roomId)) {
@@ -102,18 +104,26 @@ function handleJoin(ws, message) {
     return;
   }
 
-  leaveRoom(ws);
+  if (state.expectedRoomId && roomId !== state.expectedRoomId) {
+    send(ws, {
+      type: "error",
+      message: "房间号与信令连接不匹配，请刷新页面后重试",
+    });
+    return;
+  }
+
+  leaveRoom(context, ws);
 
   state.nickname = normalizeNickname(
     message.nickname,
     `用户-${state.clientId.slice(0, 4)}`
   );
 
-  let room = rooms.get(roomId);
+  let room = context.rooms.get(roomId);
 
   if (!room) {
     room = new Map();
-    rooms.set(roomId, room);
+    context.rooms.set(roomId, room);
   }
 
   if (room.size >= MAX_ROOM_PEERS) {
@@ -126,7 +136,7 @@ function handleJoin(ws, message) {
 
   const existingPeers = [...room.entries()].map(([peerId, peer]) => ({
     id: peerId,
-    nickname: getState(peer)?.nickname || "未知用户",
+    nickname: getState(context, peer)?.nickname || "未知用户",
   }));
 
   const existingPeerIds = existingPeers.map((peer) => peer.id);
@@ -153,8 +163,8 @@ function handleJoin(ws, message) {
   );
 }
 
-function handleSignal(ws, message) {
-  const state = getState(ws);
+function handleSignal(context, ws, message) {
+  const state = getState(context, ws);
 
   if (!state?.roomId) {
     send(ws, {
@@ -165,11 +175,11 @@ function handleSignal(ws, message) {
   }
 
   if (message.type === "detach-signal") {
-    const room = rooms.get(state.roomId);
+    const room = context.rooms.get(state.roomId);
     const peerId = state.clientId;
     const nickname = state.nickname;
 
-    leaveRoom(ws, {
+    leaveRoom(context, ws, {
       notify: false,
     });
 
@@ -192,7 +202,7 @@ function handleSignal(ws, message) {
     return;
   }
 
-  const room = rooms.get(state.roomId);
+  const room = context.rooms.get(state.roomId);
   const target = room?.get(String(message.to || ""));
 
   if (!target) {
@@ -212,7 +222,7 @@ function handleSignal(ws, message) {
   });
 }
 
-function handleWebSocket(request) {
+function handleWebSocket(request, context, expectedRoomId = null) {
   if (request.headers.get("Upgrade")?.toLowerCase() !== "websocket") {
     return new Response("Expected WebSocket upgrade", {
       status: 426,
@@ -224,8 +234,9 @@ function handleWebSocket(request) {
 
   server.accept();
 
-  socketState.set(server, {
+  context.socketState.set(server, {
     clientId: crypto.randomUUID(),
+    expectedRoomId,
     roomId: null,
     nickname: "",
   });
@@ -254,21 +265,21 @@ function handleWebSocket(request) {
     }
 
     if (message.type === "join") {
-      handleJoin(server, message);
+      handleJoin(context, server, message);
       return;
     }
 
-    handleSignal(server, message);
+    handleSignal(context, server, message);
   });
 
   server.addEventListener("close", () => {
-    leaveRoom(server);
-    socketState.delete(server);
+    leaveRoom(context, server);
+    context.socketState.delete(server);
   });
 
   server.addEventListener("error", () => {
-    leaveRoom(server);
-    socketState.delete(server);
+    leaveRoom(context, server);
+    context.socketState.delete(server);
   });
 
   return new Response(null, {
@@ -277,12 +288,41 @@ function handleWebSocket(request) {
   });
 }
 
+export class Room {
+  constructor() {
+    this.context = {
+      rooms: new Map(),
+      socketState: new WeakMap(),
+    };
+  }
+
+  fetch(request) {
+    const url = new URL(request.url);
+    const roomId = normalizeRoomId(url.searchParams.get("r"));
+
+    if (!isValidRoomId(roomId)) {
+      return new Response("Missing or invalid room id", {
+        status: 400,
+      });
+    }
+
+    return handleWebSocket(request, this.context, roomId);
+  }
+}
+
 export default {
   fetch(request, env) {
     const url = new URL(request.url);
 
     if (url.pathname === "/ws") {
-      return handleWebSocket(request);
+      const roomId = normalizeRoomId(url.searchParams.get("r"));
+
+      if (env.ROOMS && isValidRoomId(roomId)) {
+        const id = env.ROOMS.idFromName(roomId);
+        return env.ROOMS.get(id).fetch(request);
+      }
+
+      return handleWebSocket(request, localContext);
     }
 
     return env.ASSETS.fetch(request);

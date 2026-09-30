@@ -2778,7 +2778,8 @@
     // =========================
     function connectAndJoin(roomId) {
       const protocol = location.protocol === "https:" ? "wss" : "ws";
-      const wsUrl = `${protocol}://${location.host}/ws`;
+      const wsUrl =
+        `${protocol}://${location.host}/ws?r=${encodeURIComponent(roomId)}`;
       currentNickname =
         normalizeNickname(nicknameInput.value) || generateNickname();
       nicknameInput.value = currentNickname;

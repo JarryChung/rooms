@@ -56,7 +56,7 @@ pnpm dev:worker
 pnpm deploy:worker
 ```
 
-Workers 版本使用全局 `Map` 保存房间和 WebSocket 连接，没有使用 Durable Objects。这适合演示或低流量临时房间，但它不是跨实例共享状态：不同边缘节点、不同 Worker isolate、重新部署或 isolate 回收后，内存房间都可能不可见或消失。
+Workers 版本按房间号路由到 `Room` Durable Object，并在对象进程内用 `Map` 保存 WebSocket 连接；代码没有把房间数据写入持久化存储。这样同一房间的用户会稳定进入同一个信令进程，避免普通 Worker 全局 `Map` 在不同 isolate 之间不共享导致双方一直看不到彼此。
 
 ## 使用方式
 
