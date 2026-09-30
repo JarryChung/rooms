@@ -23,7 +23,7 @@
 
 ```bash
 pnpm install
-node server.js
+pnpm start
 ```
 
 启动后打开：
@@ -33,6 +33,30 @@ http://localhost:8080
 ```
 
 在两个浏览器标签页或两台设备上打开同一个房间链接，即可测试聊天和文件传输。
+
+## Cloudflare Workers 部署
+
+当前仓库已经包含一个 Workers 入口：
+
+```text
+src/worker.js      # Workers WebSocket 信令服务
+public/index.html  # Workers 静态页面入口
+wrangler.jsonc     # Wrangler 配置
+```
+
+本地预览：
+
+```bash
+pnpm dev:worker
+```
+
+部署：
+
+```bash
+pnpm deploy:worker
+```
+
+Workers 版本使用全局 `Map` 保存房间和 WebSocket 连接，没有使用 Durable Objects。这适合演示或低流量临时房间，但它不是跨实例共享状态：不同边缘节点、不同 Worker isolate、重新部署或 isolate 回收后，内存房间都可能不可见或消失。
 
 ## 使用方式
 
@@ -55,7 +79,7 @@ http://localhost:8080
 
 ## 工作原理
 
-`server.js` 监听 `8080` 端口，同时提供 `index.html` 和 WebSocket 信令服务。用户加入房间后，服务端会维护房间内的临时连接列表，并在用户之间转发以下信令消息：
+`server.js` 监听 `8080` 端口，同时提供 `index.html` 和 WebSocket 信令服务。Workers 部署时由 `src/worker.js` 处理 `/ws` 信令连接，并由 `public/index.html` 提供页面。用户加入房间后，服务端会维护房间内的临时连接列表，并在用户之间转发以下信令消息：
 
 - `join`：加入房间
 - `peers`：返回房间内已有用户
